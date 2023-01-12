@@ -12,20 +12,20 @@ See the scripts in the `scripts` directory for more.
 
 Use: 
 ```bash
-ip link show
+ip link show up
 ```
 
 Result:
 ```bash
-vagrant@lab1:~$ ip link show
+vagrant@lab1:~$ ip link show up
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
 2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
     link/ether 02:2d:ad:54:38:ca brd ff:ff:ff:ff:ff:ff
 3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
-    link/ether 08:00:27:fd:cd:f6 brd ff:ff:ff:ff:ff:ff
+    link/ether 08:00:27:e8:f9:48 brd ff:ff:ff:ff:ff:ff
 4: enp0s9: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
-    link/ether 08:00:27:99:6a:2b brd ff:ff:ff:ff:ff:ff
+    link/ether 08:00:27:ce:2b:38 brd ff:ff:ff:ff:ff:ff
 ```
 
 ### 2.2 Using netstat(8) and arp(8), find the MAC address of the default router of your machine.
@@ -126,34 +126,34 @@ The average latency for aalto.fi is 10.510 ms and for aut.ac.nz is 316.661 ms.
 
 Use: 
 ```bash
-traceroute -I amazon.com
+traceroute -I amazon.com -m 40
 ```
 
 Result:
 ```bash
-vagrant@lab1:~$ traceroute -I amazon.com
-traceroute to amazon.com (205.251.242.103), 30 hops max, 60 byte packets
- 1  10.0.2.2 (10.0.2.2)  0.369 ms  0.358 ms  0.355 ms
- 2  router.ctc (192.168.2.1)  2.222 ms  3.141 ms  3.139 ms
- 3  gw-1-v325.kyla.fi (82.130.21.252)  3.265 ms  3.262 ms  3.259 ms
- 4  funet-espoo1-100g-r1.ayy.fi (82.130.63.245)  12.023 ms  12.020 ms  12.017 ms
- 5  fi-csc.nordu.net (109.105.102.168)  4.044 ms  4.041 ms  4.039 ms
- 6  de-hmb.nordu.net (109.105.97.77)  19.281 ms  19.439 ms  19.426 ms
- 7  nl-ams.nordu.net (109.105.97.80)  26.803 ms  25.486 ms  25.477 ms
- 8  us-man.nordu.net (109.105.97.64)  115.277 ms  115.275 ms  115.273 ms
- 9  nyiix-peering.amazon.com (198.32.160.64)  127.192 ms  127.184 ms  127.181 ms
-10  150.222.68.92 (150.222.68.92)  114.812 ms  112.861 ms  112.852 ms
-11  150.222.68.93 (150.222.68.93)  126.274 ms  129.949 ms  125.991 ms
-12  * * *
-13  150.222.68.72 (150.222.68.72)  112.193 ms  113.011 ms  112.304 ms
-14  * * *
+vagrant@lab1:~$ traceroute -I amazon.com -m 40
+traceroute to amazon.com (54.239.28.85), 100 hops max, 60 byte packets
+ 1  _gateway (10.0.2.2)  0.238 ms  0.223 ms  0.220 ms
+ 2  _gateway (10.100.0.1)  2.749 ms  2.747 ms  2.744 ms
+ 3  jgw-2-v100.aalto.fi (130.233.231.19)  43.357 ms  43.354 ms  43.351 ms
+ 4  funet-100g-aalto-a.aalto.fi (130.233.231.189)  43.348 ms  43.346 ms  43.342 ms
+ 5  espoo1.ip.funet.fi (86.50.255.232)  44.813 ms  44.809 ms  44.805 ms
+ 6  fi-csc.nordu.net (109.105.102.168)  64.604 ms  3.058 ms  3.035 ms
+ 7  de-hmb.nordu.net (109.105.97.77)  22.018 ms  18.980 ms  18.967 ms
+ 8  nl-ams.nordu.net (109.105.97.80)  25.752 ms  25.749 ms  25.746 ms
+ 9  us-man.nordu.net (109.105.97.64)  147.815 ms  147.812 ms  147.809 ms
+10  nyiix-peering.amazon.com (198.32.160.64)  113.280 ms  113.277 ms  113.274 ms
+11  150.222.68.88 (150.222.68.88)  113.271 ms  113.269 ms  113.224 ms
+12  150.222.68.91 (150.222.68.91)  116.982 ms  116.973 ms  125.199 ms
+13  * * *
+14  150.222.68.74 (150.222.68.74)  113.172 ms  116.177 ms  116.150 ms
 15  * * *
 16  * * *
 17  * * *
 18  * * *
 19  * * *
-20  52.93.28.226 (52.93.28.226)  123.564 ms  123.561 ms  125.953 ms
-21  * * *
+20  * * *
+21  52.93.28.74 (52.93.28.74)  188.709 ms  188.703 ms  188.696 ms
 22  * * *
 23  * * *
 24  * * *
@@ -163,6 +163,11 @@ traceroute to amazon.com (205.251.242.103), 30 hops max, 60 byte packets
 28  * * *
 29  * * *
 30  * * *
+31  * * *
+32  * * *
+33  * * *
+34  * * *
+35  54.239.28.85 (54.239.28.85)  234.653 ms  234.648 ms  234.628 ms
 ```
 
 Because of congestion differences for each run and the Internet tries to choose the best routing option for us.
@@ -202,38 +207,40 @@ Yes, of couse. As the MTR report can show loss when the destination host is not 
 
 Use: 
 ```bash
-nmap 192.168.1.0/24 192.168.2.0/24
+sudo nmap -sT -p- 192.168.1.0/24 192.168.2.0/24
 ```
 
 Result:
 ```bash
-vagrant@lab1:~$ nmap 192.168.1.0/24 192.168.2.0/24
-Starting Nmap 7.80 ( https://nmap.org ) at 2023-01-11 19:31 UTC
-Nmap scan report for 192.168.1.2 (192.168.1.2)
-Host is up (0.00017s latency).
-Not shown: 999 closed ports
-PORT   STATE SERVICE
-22/tcp open  ssh
-
+vagrant@lab1:~$ sudo nmap -sT -p- 192.168.1.0/24 192.168.2.0/24
+Starting Nmap 7.80 ( https://nmap.org ) at 2023-01-12 13:08 UTC
 Nmap scan report for lab2 (192.168.1.3)
-Host is up (0.00013s latency).
-Not shown: 999 closed ports
+Host is up (0.00011s latency).
+Not shown: 65534 closed ports
 PORT   STATE SERVICE
 22/tcp open  ssh
+MAC Address: 08:00:27:45:72:D1 (Oracle VirtualBox virtual NIC)
 
-Nmap scan report for 192.168.2.2 (192.168.2.2)
-Host is up (0.00010s latency).
-Not shown: 999 closed ports
+Nmap scan report for lab1 (192.168.1.2)
+Host is up (0.000032s latency).
+Not shown: 65534 closed ports
 PORT   STATE SERVICE
 22/tcp open  ssh
 
 Nmap scan report for lab3 (192.168.2.3)
-Host is up (0.00020s latency).
-Not shown: 999 closed ports
+Host is up (0.000093s latency).
+Not shown: 65534 closed ports
+PORT   STATE SERVICE
+22/tcp open  ssh
+MAC Address: 08:00:27:3D:8F:AB (Oracle VirtualBox virtual NIC)
+
+Nmap scan report for lab1 (192.168.2.2)
+Host is up (0.000028s latency).
+Not shown: 65534 closed ports
 PORT   STATE SERVICE
 22/tcp open  ssh
 
-Nmap done: 512 IP addresses (4 hosts up) scanned in 7.52 seconds
+Nmap done: 512 IP addresses (4 hosts up) scanned in 7.70 seconds
 ```
 
 ## 4. Examining the request and response messages of clients and servers using netcat
