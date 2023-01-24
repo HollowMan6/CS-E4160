@@ -59,6 +59,7 @@ Vagrant.configure("2") do |config|
       sudo ip addr add 192.168.2.3/24 dev enp0s8
       sudo echo "192.168.1.2 lab1" | sudo tee -a /etc/hosts
       sudo echo "192.168.2.3 lab3" | sudo tee -a /etc/hosts
+      sudo apt update
       sudo apt install -y net-tools
     SHELL
     subconfig.vm.provision :shell, privileged: false, path: "scripts/lab2.sh"
@@ -84,6 +85,7 @@ Vagrant.configure("2") do |config|
       sudo ip addr add 192.168.1.3/24 dev enp0s8
       sudo echo "192.168.2.2 lab1" | sudo tee -a /etc/hosts
       sudo echo "192.168.1.3 lab2" | sudo tee -a /etc/hosts
+      sudo apt update
       sudo apt install -y net-tools
     SHELL
     subconfig.vm.provision :shell, privileged: false, path: "scripts/lab3.sh"
