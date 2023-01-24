@@ -34,9 +34,10 @@ sudo debconf-set-selections <<< "postfix postfix/mailname string lab1"
 sudo debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
 sudo apt-get install -y postfix procmail spamassassin mailutils
 
-# sudo sed -i 's#mynetworks = #mynetworks = #' /etc/postfix/main.cf
+sudo sed -i 's#mynetworks =#mynetworks = 192.168.1.3#' /etc/postfix/main.cf
 
 echo 'disable_vrfy_command = yes' | sudo tee -a /etc/postfix/main.cf
 ## https://www.postfix.org/ETRN_README.html
 echo 'fast_flush_domains =' | sudo tee -a /etc/postfix/main.cf
+echo 'smtpd_discard_ehlo_keywords = etrn' | sudo tee -a /etc/postfix/main.cf
 sudo postfix reload

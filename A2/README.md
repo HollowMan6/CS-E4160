@@ -31,17 +31,7 @@ spamd - Spamassassin daemon doc
 During this assignment you will need two hosts (lab1 and lab2). Stop any daemons that might be listening on the default SMTP port.
 
 #### 1.1 Add the IPv4 addresses and aliases of lab1 and lab2 on both computers to the /etc/hosts file.
-For lab1:
-```bash
-sudo echo "192.168.1.3 lab2" | sudo tee -a /etc/hosts
-sudo echo "192.168.2.3 lab3" | sudo tee -a /etc/hosts
-```
-
-For lab2:
-```bash
-sudo echo "192.168.1.2 lab1" | sudo tee -a /etc/hosts
-sudo echo "192.168.2.3 lab3" | sudo tee -a /etc/hosts
-```
+See Vagrantfile.
 
 ### 2. Installing software and Configuring postfix and exim4, Verify that the following packages are installed:
 
@@ -63,38 +53,41 @@ Disable ETRN and VRFY commands. Remember to reload postfix service /etc/init.d/p
 
 #### 2.1 Configure the postfix configuration file main.cf to fill the requirements above.
 
-```bash
-echo 'disable_vrfy_command = yes' | sudo tee -a /etc/postfix/main.cf
-echo 'fast_flush_domains =' | sudo tee -a /etc/postfix/main.cf
-sudo postfix reload
-```
+See lab1.sh
 
-2.2
+#### 2.2 What is purpose of the main.cf setting "mydestination"?
+The "mydestination" setting in the main.cf configuration file of postfix is used to specify the domains and hosts that postfix should consider to be "local" and should handle mail for. This setting typically includes the hostname of the machine running postfix, as well as any local domain names that the machine should be responsible for handling mail for.
 
-What is purpose of the main.cf setting "mydestination"?
+When postfix receives a message, it first checks the "mydestination" setting to determine if the message is intended for a local domain or host. If the message is for a local domain or host, postfix will handle the message locally, such as delivering it to a mailbox on the machine or forwarding it to another local machine. If the message is not for a local domain or host, postfix will forward the message to another mail server for delivery.
+
+This allows for a separation of responsibilities for different domains and hosts, and helps to ensure that messages intended for local delivery are handled quickly and efficiently, while messages intended for external delivery are forwarded to the appropriate external mail servers.
+
+#### 2.3 Why is it a really bad idea to set mynetworks broader than necessary (e.g. to 0.0.0.0/0)?
+
+Setting the "mynetworks" configuration option in postfix to a broad range such as 0.0.0.0/0 (which would include all IP addresses) is a bad idea because it would allow any machine on the Internet to send mail through the postfix server, without any restriction. This could make the server an open relay, which would allow spammers and other malicious actors to use the server to send large amounts of unsolicited mail. This could lead to the server's IP address being blacklisted by various spam-blocking organizations, which would make it difficult for legitimate mail sent from the server to be delivered.
+
+Additionally, allowing any machine to send mail through the server also increases the risk of the server being compromised by attackers. An attacker could use the open relay to send spam or malicious messages, which could damage the server's reputation and could also be used to distribute malware or phishing messages.
+
+By limiting the "mynetworks" option to only include IP addresses and networks that are trusted and controlled by the organization, it reduces the risk of the server being used as an open relay and also decrease the risk of the server being used to distribute spam or malicious messages.
+
+#### 2.4 What is the idea behind the ETRN and VRFY verbs? How can a malicious party misuse the commands?
+
+The ETRN and VRFY verbs are SMTP (Simple Mail Transfer Protocol) commands that are used to manage email delivery and address verification, respectively.
+
+The ETRN command is used to initiate a mail transfer from a remote mail server to a local mail server. It allows a remote server to request that a local server start sending mail that is queued for delivery to the remote server. This can be useful for situations where the remote server is offline for a period of time and needs to catch up on mail deliveries when it comes back online.
+
+The VRFY command is used to verify that a specific email address exists on a server. It allows a client to send an email address to a server and receive a response indicating whether the address is valid or not. This can be useful for applications that need to validate email addresses before sending mail to them, or for troubleshooting email delivery issues.
+
+However, both ETRN and VRFY commands can be misused by malicious parties to gain information about the email addresses that exist on a server. By sending VRFY commands to a server, an attacker can obtain a list of valid email addresses, which can then be used for spamming or phishing attacks. ETRN can be misused by malicious parties to force a server to start sending mail that it has queued for delivery, this could be used for spamming or phishing attacks as well.
+
+For this reason, most modern mail servers disable the VRFY and ETRN commands by default, or allow them only for specific IP addresses or networks.
+
+#### 2.5 Configure exim4 on lab2 to handle local emails and send all the rest to lab1. After you have configured postfix and exim4 you should be able to send mail from lab2 to lab1, but not vice versa. Use the standard debian package reconfiguration tool dpkg-reconfigure(8) to configure exim4.
 
 1p
 
-2.3
 
-Why is it a really bad idea to set mynetworks broader than necessary (e.g. to 0.0.0.0/0)?
-
-1p
-
-2.4
-
-What is the idea behind the ETRN and VRFY verbs? How can a malicious party misuse the commands?
-
-2p
-
-2.5
-
-Configure exim4 on lab2 to handle local emails and send all the rest to lab1. After you have configured postfix and exim4 you should be able to send mail from lab2 to lab1, but not vice versa. Use the standard debian package reconfiguration tool dpkg-reconfigure(8) to configure exim4.
-
-1p
-
-
-1. Sending email
+### 3. Sending email
 Send a message from lab2 to <user>@lab1 using mail(1). Replace the <user> with your username. Read the message on lab1. See also email message headers. See incoming message information from /var/log/mail.log using tail(1).
 
 3.1
