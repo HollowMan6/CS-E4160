@@ -41,3 +41,19 @@ echo 'disable_vrfy_command = yes' | sudo tee -a /etc/postfix/main.cf
 echo 'fast_flush_domains =' | sudo tee -a /etc/postfix/main.cf
 echo 'smtpd_discard_ehlo_keywords = etrn' | sudo tee -a /etc/postfix/main.cf
 sudo postfix reload
+
+sudo tee -a /etc/procmailrc <<EOL
+:0fw
+| /usr/bin/spamassassin
+* ^X-Spam-Status: Yes
+spam/
+EOL
+# /usr/bin/procmail -a "$USER"
+sudo postfix reload
+sudo update-rc.d spamassassin enable
+
+tee -a ~/.procmailrc <<EOL
+:0
+* ^Subject:.*\[cs-e4160\]
+cs-e4160/
+EOL

@@ -14,7 +14,7 @@ Vagrant.configure("2") do |config|
   ## Lab 1
   config.vm.define "lab1" do |subconfig|
     # Set box and hostname
-    subconfig.vm.box = "ubuntu/jammy64"    
+    subconfig.vm.box = "ubuntu/jammy64"
     subconfig.vm.hostname = "lab1"
     # Set up networks
     subconfig.vm.network "private_network",
