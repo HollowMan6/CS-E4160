@@ -40,11 +40,20 @@ echo 'disable_vrfy_command = yes' | sudo tee -a /etc/postfix/main.cf
 ## https://www.postfix.org/ETRN_README.html
 echo 'fast_flush_domains =' | sudo tee -a /etc/postfix/main.cf
 echo 'smtpd_discard_ehlo_keywords = etrn' | sudo tee -a /etc/postfix/main.cf
+sudo sed -i 's#mailbox_command = .*#mailbox_command = /usr/bin/procmail -a "$USER"#' /etc/postfix/main.cf
 sudo postfix reload
 
-sudo tee -a /etc/procmailrc <<EOL
+sudo tee /etc/procmailrc <<EOL
+DEFAULT="\$HOME/inbox/"
+MAILDIR="\$HOME/inbox/"
+LOGFILE="/var/log/procmail.log"
+LOGABSTRACT=yes
+VERBOSE=yes
+
 :0fw
 | /usr/bin/spamassassin
+
+:0
 * ^X-Spam-Status: Yes
 spam/
 EOL
@@ -52,7 +61,16 @@ EOL
 sudo postfix reload
 sudo update-rc.d spamassassin enable
 
-tee -a ~/.procmailrc <<EOL
+sudo useradd testuser1
+
+tee ~/.procmailrc <<EOL
+LOGABSTRACT=yes
+VERBOSE=yes
+
+:0c
+* ^Subject:.*\[cs-e4160\]
+! testuser1
+
 :0
 * ^Subject:.*\[cs-e4160\]
 cs-e4160/

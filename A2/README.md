@@ -89,32 +89,66 @@ Run:
 sudo dpkg-reconfigure exim4-config
 ```
 
-
 ### 3. Sending email
 Send a message from lab2 to <user>@lab1 using mail(1). Replace the <user> with your username. Read the message on lab1. See also email message headers. See incoming message information from /var/log/mail.log using tail(1).
 
-#### 3.1 Explain shortly the incoming mail log messages
-
-```bash
-echo "My message" | mail -s subject vagrant@lab1
-sudo tail /var/log/mail.log
-```
+echo "This is a test" | mail -s "Test Message" -v vagrant@lab1
 
 ```log
-Sep 28 11:53:01 lab1 postfix/smtpd[1234]: connect from lab2.example.com[192.168.1.2]
-Sep 28 11:53:02 lab1 postfix/smtpd[1234]: CF112345678: client=lab2.example.com[192.168.1.2], sasl_method=PLAIN, sasl_username=user@example.com
-Sep 28 11:53:02 lab1 postfix/cleanup[1235]: CF112345678: message-id=<abcdef1234567890@lab2.example.com>
-Sep 28 11:53:03 lab1 postfix/qmgr[1236]: CF112345678: from=<user@example.com>, size=834, nrcpt=1 (queue active)
-Sep 28 11:53:03 lab1 postfix/local[1237]: CF112345678: to=<user@lab1.example.com>, relay=local, delay=0.05, delays=0.03/0.01/0/0.01, dsn=2.0.0, status=sent (delivered to command: /usr/bin/procmail)
+Jan 30 19:23:22 lab1 postfix/smtpd[5877]: connect from lab2[192.168.1.3]
+Jan 30 19:23:22 lab1 postfix/smtpd[5877]: discarding EHLO keywords: ETRN
+Jan 30 19:23:22 lab1 postfix/smtpd[5877]: warning: TLS library problem: error:0A000412:SSL routines::sslv3 alert bad certificate:../ssl/record/rec_layer_s3.c:1584:SSL alert number 42:
+Jan 30 19:23:22 lab1 postfix/smtpd[5877]: lost connection after STARTTLS from lab2[192.168.1.3]
+Jan 30 19:23:22 lab1 postfix/smtpd[5877]: disconnect from lab2[192.168.1.3] ehlo=1 starttls=1 commands=2
+Jan 30 19:23:22 lab1 postfix/smtpd[5877]: connect from lab2[192.168.1.3]
+Jan 30 19:23:22 lab1 postfix/smtpd[5877]: discarding EHLO keywords: ETRN
+Jan 30 19:23:22 lab1 postfix/smtpd[5877]: 0EEFC3FEB5: client=lab2[192.168.1.3]
+Jan 30 19:23:22 lab1 postfix/cleanup[5880]: 0EEFC3FEB5: message-id=<E1pMZkQ-00022k-0y@lab2>
+Jan 30 19:23:22 lab1 postfix/qmgr[5673]: 0EEFC3FEB5: from=<vagrant@lab2>, size=562, nrcpt=1 (queue active)
+Jan 30 19:23:22 lab1 postfix/smtpd[5877]: disconnect from lab2[192.168.1.3] ehlo=1 mail=1 rcpt=1 bdat=1 quit=1 commands=5
+Jan 30 19:23:22 lab1 postfix/local[5881]: 0EEFC3FEB5: to=<vagrant@lab1>, relay=local, delay=0.64, delays=0/0/0/0.63, dsn=2.0.0, status=sent (delivered to command: procmail -a "$EXTENSION")
+Jan 30 19:23:22 lab1 postfix/qmgr[5673]: 0EEFC3FEB5: removed
 ```
 
-- The first line shows that a connection was made to the email server from the IP address 192.168.1.2, which is associated with the hostname lab2.example.com.
-- The second line shows that the client (lab2.example.com) is using the PLAIN SASL method and the user who is sending the email is user@example.com.
-- The third line shows that the email has a unique message-id of abcdef1234567890@lab2.example.com.
-- The fourth line shows that the email is from user@example.com, has a size of 834 bytes, and is being sent to 1 recipient.
-- The fifth line shows that the email has been delivered to the local email server, and is being processed by the procmail command. In this case, the email was successfully delivered, with a status of "sent" and a delivery status notification (DSN) of 2.0.0.
+#### 3.1 Explain shortly the incoming mail log messages
+
+- The line 1,6 shows that a connection was made to the email server from the IP address 192.168.1.3, which is associated with the hostname lab2.
+- The line 2,7 shows that the ENTR command was discarded, because it is configured to be not allowed by the server.
+- For line 3-5, as we have self-signed certificate for the domain lab2, the server is not able to verify the certificate and the connection is closed.
+- The line 8 shows that the client (lab2) connects to the server successfully without the STARTTLS command.
+- The line 9 shows that the email has a unique message-id of E1pMZkQ-00022k-0y@lab2.
+- The line 10 shows that the email is from vagrant@lab2, has a size of 562 bytes, and is being sent to 1 recipient.
+- The line 12 shows that the email has been delivered to the local email server, and is being processed by the procmail command. In this case, the email was successfully delivered, with a status of "sent" and a delivery status notification (DSN) of 2.0.0.
 
 #### 3.2 Explain shortly the email headers. At what point is each header added?
+```bash
+vagrant@lab1:~$ mail
+"/var/mail/vagrant": 1 message 1 new
+>N   1 vagrant@lab2       Mon Jan 30 19:23  26/828   Test Message
+? 1
+Return-Path: <vagrant@lab2>
+Delivered-To: vagrant@lab1
+Received: from lab2 (lab2 [192.168.1.3])
+	by lab1 (Postfix) with ESMTP id 0EEFC3FEB5
+	for <vagrant@lab1>; Mon, 30 Jan 2023 19:23:22 +0000 (UTC)
+Received: from vagrant by lab2 with local (Exim 4.95)
+	(envelope-from <vagrant@lab2>)
+	id 1pMZkQ-00022k-0y
+	for vagrant@lab1;
+	Mon, 30 Jan 2023 19:23:22 +0000
+To: vagrant@lab1
+Subject: Test Message
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Message-Id: <E1pMZkQ-00022k-0y@lab2>
+From: vagrant@lab2
+Date: Mon, 30 Jan 2023 19:23:22 +0000
+
+This is a test
+
+? 
+```
 
 The headers contain information about the message, such as the sender, recipient, subject, date, and other details. The body contains the actual content of the message.
 
@@ -124,9 +158,12 @@ Email headers are added to a message at different points in the email delivery p
 - The To header is added when the email is addressed to the recipient.
 - The Subject header is added when the email is given a subject.
 - The Received header is added by each mail server that handles the message. This header contains information about the server and the time it received the message.
-The Message-ID header is added when the message is first composed, it's unique identifier for the message
+- The Message-ID header is added when the message is first composed, it's unique identifier for the message.
 - The Date header is added when the email is sent.
-- Some headers are added by the client software or the email server software, such as the User-Agent header, which identifies the software used to compose and send the email, or the MIME-Version header, which specifies the version of the MIME standard used in the message.
+- Some headers are added by the client software or the email server software, such as the MIME-Version header, which specifies the version of the MIME standard used in the message.
+- The Content-Type header specifies the type of content in the message, such as text, image, or audio.
+- The Content-Transfer-Encoding header specifies the encoding used to encode the message body.
+- The Return-Path header specifies the address to which undeliverable messages should be sent.
 
 ### 4. Configuring procmail and spamassassin
 Procmail is configured by writing instruction sets caller recipes to a configuration file procmailrc(5). Edit (create if necessary) /etc/procmailrc and begin by piping your arriving emails into spamassassin with the following recipe:
@@ -160,22 +197,81 @@ Write additional procmail recipes to:
 
 This recipe checks the X-Spam-Status header in the email, and if it contains the word "Yes", the email is delivered to the spam/ folder. This is determined by spamassassin, the spam filter. This can be done by sending a message with spam content and see if it gets flagged as spam, and delivered to the spam folder.
 
+https://opensource.apple.com/source/SpamAssassin/SpamAssassin-124.1/SpamAssassin/sample-spam.txt.auto.html
+
+```bash
+mail -s "Test spam mail (GTUBE)" -v vagrant@lab1
+
+This is the GTUBE, the
+	Generic
+	Test for
+	Unsolicited
+	Bulk
+	Email
+
+If your spam filter supports it, the GTUBE provides a test by which you
+can verify that the filter is installed correctly and is detecting incoming
+spam. You can send yourself a test mail containing the following string of
+characters (in upper case and with no white spaces and line breaks):
+
+XJS*C4JDBQADN1.NSBN3*2IDNEN*GTUBE-STANDARD-ANTI-UBE-TEST-EMAIL*C.34X
+
+You should send this test mail from an account outside of your network.
+
+```
+
+CTRL+D to send the email.
+
 #### 4.2 Demonstrate the filter rules created for messages with [cs-e4160] in the subject field by sending a message from lab2 to <user>@lab1 using the header.
 
 This recipe checks the Subject header in the email, and if it contains the string "[cs-e4160]", the email is delivered to the cs-e4160/ folder. This can be done by sending a message with [cs-e4160] in the subject field and see if it gets delivered to the folder cs-e4160.
 
+```bash
+echo "This is a test" | mail -s "[cs-e4160] hi" -v vagrant@lab1
+```
+
+```bash
+cd ~/cs-e4160/new
+vagrant@lab1:~/cs-e4160/new$ cat 1675108483.5929_0.lab1 
+Return-Path: <vagrant@lab2>
+X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on lab1
+X-Spam-Level: 
+X-Spam-Status: No, score=-0.9 required=5.0 tests=ALL_TRUSTED,TO_MALFORMED
+	autolearn=no autolearn_force=no version=3.4.6
+X-Original-To: vagrant@lab1
+Delivered-To: vagrant@lab1
+Received: from lab2 (lab2 [192.168.1.3])
+	by lab1 (Postfix) with ESMTP id 70DE83FEB5
+	for <vagrant@lab1>; Mon, 30 Jan 2023 19:54:42 +0000 (UTC)
+Received: from vagrant by lab2 with local (Exim 4.95)
+	(envelope-from <vagrant@lab2>)
+	id 1pMaEk-00023I-BP
+	for vagrant@lab1;
+	Mon, 30 Jan 2023 19:54:42 +0000
+To: vagrant@lab1
+Subject: [cs-e4160] hi
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Message-Id: <E1pMaEk-00023I-BP@lab2>
+From: vagrant@lab2
+Date: Mon, 30 Jan 2023 19:54:42 +0000
+
+This is a test
+```
+
 #### 4.3 Explain briefly the additional email headers (compared to step 4.2).
 
-After creating additional procmail recipes, when an email is received that matches the conditions specified in the recipe, procmail will add a few additional headers to the email. For example, when an email is flagged as spam by spamassassin and delivered to the spam/ folder, procmail will add a header X-Spam-Status: Yes to the email. Similarly, when an email with [cs-e4160] in the subject field is delivered to the cs-e4160/ folder, procmail will add a header X-Procmail-To: cs-e4160/ to the email. These headers are added by procmail and can be used to identify the emails that have been processed by procmail and the actions that have been taken on them.
+- X-Spam-Checker-Version is the version of the spam filter used.
+- X-Spam-Status is the result of the spam filter. It contains the score, the required score, the tests used, and the version of the spam filter.
+- X-Original-To is the original recipient of the email before procmail handles.
 
 ### 5. E-mail servers and DNS
 #### 5.1 What information is stored in MX records in the DNS system?
 
 MX records in the DNS system store information about the mail servers responsible for accepting email messages for a particular domain. Specifically, MX records contain the hostname and priority of a mail server. The priority is used to determine the order in which mail servers should be contacted if multiple servers are listed for a domain. When a client wants to send an email to a particular domain, it looks up the MX records for that domain and uses them to determine which server(s) to connect to in order to deliver the message.
 
-#### 5.2 Explain briefly two ways to make redundant email servers using multiple email servers and the DNS system. Name at least two reasons why you would have multiple email servers for a single domain?
-
-Hint: Using multiple DNS servers is not the correct answer!
+#### 5.2 Explain briefly two ways to make redundant email servers using multiple email servers and the DNS system. Name at least two reasons why you would have multiple email servers for a single domain? Hint: Using multiple DNS servers is not the correct answer!
 
 One way to make redundant email servers using multiple email servers and the DNS system is to have multiple MX records for a domain, each with a different priority. This allows for failover in case the primary mail server is unavailable. For example, if the primary mail server has a priority of 10, the secondary mail server can have a priority of 20. This way, if the primary mail server is down, the client will attempt to connect to the secondary mail server.
 
