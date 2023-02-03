@@ -133,29 +133,36 @@ For security purposes, security professionals and penetration testers set up a D
 
 ### 6.1 Using Nmap, enumerate the lab2, and detect the os version, php version, apache version and open ports
 Result:
+
+https://nmap.org/nsedoc/scripts/http-php-version.html
+
 ```bash
 vagrant@lab1:~$ nmap -A -T4 lab2
-Starting Nmap 7.80 ( https://nmap.org ) at 2023-01-24 21:45 UTC
+Starting Nmap 7.80 ( https://nmap.org ) at 2023-02-03 22:36 UTC
 Nmap scan report for lab2 (192.168.1.3)
-Host is up (0.00011s latency).
+Host is up (0.0018s latency).
 Not shown: 997 closed ports
 PORT    STATE SERVICE VERSION
 22/tcp  open  ssh     OpenSSH 8.9p1 Ubuntu 3 (Ubuntu Linux; protocol 2.0)
 80/tcp  open  http    Apache httpd 2.4.52 ((Ubuntu))
+| http-robots.txt: 1 disallowed entry 
+|_/
 |_http-server-header: Apache/2.4.52 (Ubuntu)
 |_http-title: Apache2 Ubuntu Default Page: It works
 443/tcp open  ssl/ssl Apache httpd (SSL-only mode)
+| http-robots.txt: 1 disallowed entry 
+|_/
 |_http-server-header: Apache/2.4.52 (Ubuntu)
 |_http-title: Apache2 Ubuntu Default Page: It works
 | ssl-cert: Subject: organizationName=Internet Widgits Pty Ltd/stateOrProvinceName=Some-State/countryName=AU
-| Not valid before: 2023-01-24T21:36:38
-|_Not valid after:  2024-01-24T21:36:38
+| Not valid before: 2023-02-03T22:33:21
+|_Not valid after:  2024-02-03T22:33:21
 | tls-alpn: 
 |_  http/1.1
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
-Nmap done: 1 IP address (1 host up) scanned in 12.46 seconds
+Nmap done: 1 IP address (1 host up) scanned in 13.26 seconds
 ```
 
 This command tells Nmap to perform a version detection scan (-A) and to use a timing template of level 4 (-T4) on lab2.
