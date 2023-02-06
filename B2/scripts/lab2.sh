@@ -50,7 +50,7 @@ sudo a2enmod rewrite
 sudo sed -i 's/AllowOverride/AllowOverride Options/g' /etc/apache2/mods-available/userdir.conf
 sudo systemctl restart apache2
 
-sudo apt install -y unzip mariadb-server mariadb-client php php-mysqli php-gd libapache2-mod-php
+sudo apt install -y lynx unzip mariadb-server mariadb-client php php-mysqli php-gd libapache2-mod-php
 wget https://github.com/digininja/DVWA/archive/master.zip
 unzip master.zip
 sudo mv DVWA-master/* /var/www/html/

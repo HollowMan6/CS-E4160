@@ -19,7 +19,7 @@ curl -s http://localhost
 
 ```bash
 vagrant ssh-config > vagrant-ssh
-sudo ssh -F vagrant-ssh -L 80:localhost:80 lab2
+sudo ssh -F vagrant-ssh -NL 80:localhost:80 lab2
 ```
 
 ## 2. Serve a web page using Node.js
@@ -84,9 +84,17 @@ Enforce access to the secure_secrets subdirectory with HTTPS by using rewrite mo
 
 ```bash
 sudo ssh -F vagrant-ssh -L 443:localhost:443 lab2
-curl https://localhost/~vagrant -k
+curl http://localhost/~vagrant/secure_secrets/ -k
+lynx http://localhost/~vagrant/secure_secrets/
 ```
 
+a 301 redirect indicates that a page has permanently moved to a new location, meanwhile, a 302 redirect says that the page has moved to a new location, but that it is only temporary.
+
+```
+redirect|R[=code]	Forces an external redirect, optionally with the specified HTTP status code.
+
+last|L	Stop the rewriting process immediately and don't apply any more rules. Especially note caveats for per-directory and .htaccess context (see also the END flag). details ...
+```
 ### 4.2 What is HSTS?
 
 HSTS (HTTP Strict Transport Security) is a security mechanism that is used to help protect websites against man-in-the-middle (MITM) attacks. It works by telling web browsers that they should only communicate with a website over HTTPS, even if the user types "http://" in the URL bar or clicks on a link that starts with "http://". This helps to prevent attackers from intercepting and modifying the communication between the browser and the website, and can help to protect users from phishing and other types of attacks.
@@ -137,11 +145,11 @@ Result:
 https://nmap.org/nsedoc/scripts/http-php-version.html
 
 ```bash
-vagrant@lab1:~$ nmap -A -T4 lab2
-Starting Nmap 7.80 ( https://nmap.org ) at 2023-02-03 22:36 UTC
+vagrant@lab1:~$ sudo nmap -A -sV -sS -p- -T5 --script=http-php-version lab2
+Starting Nmap 7.80 ( https://nmap.org ) at 2023-02-04 11:37 UTC
 Nmap scan report for lab2 (192.168.1.3)
-Host is up (0.0018s latency).
-Not shown: 997 closed ports
+Host is up (0.00063s latency).
+Not shown: 65532 closed ports
 PORT    STATE SERVICE VERSION
 22/tcp  open  ssh     OpenSSH 8.9p1 Ubuntu 3 (Ubuntu Linux; protocol 2.0)
 80/tcp  open  http    Apache httpd 2.4.52 ((Ubuntu))
@@ -155,14 +163,22 @@ PORT    STATE SERVICE VERSION
 |_http-server-header: Apache/2.4.52 (Ubuntu)
 |_http-title: Apache2 Ubuntu Default Page: It works
 | ssl-cert: Subject: organizationName=Internet Widgits Pty Ltd/stateOrProvinceName=Some-State/countryName=AU
-| Not valid before: 2023-02-03T22:33:21
-|_Not valid after:  2024-02-03T22:33:21
+| Not valid before: 2023-02-04T10:32:29
+|_Not valid after:  2024-02-04T10:32:29
 | tls-alpn: 
 |_  http/1.1
+MAC Address: 08:00:27:65:20:95 (Oracle VirtualBox virtual NIC)
+Aggressive OS guesses: Linux 2.6.32 (96%), Linux 3.2 - 4.9 (96%), Linux 2.6.32 - 3.10 (96%), Linux 3.4 - 3.10 (95%), Linux 3.1 (95%), Linux 3.2 (95%), AXIS 210A or 211 Network Camera (Linux 2.6.17) (94%), Synology DiskStation Manager 5.2-5644 (94%), Netgear RAIDiator 4.2.28 (94%), Linux 2.6.32 - 2.6.35 (94%)
+No exact OS matches for host (test conditions non-ideal).
+Network Distance: 1 hop
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
-Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
-Nmap done: 1 IP address (1 host up) scanned in 13.26 seconds
+TRACEROUTE
+HOP RTT     ADDRESS
+1   0.63 ms lab2 (192.168.1.3)
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 22.89 seconds
 ```
 
 This command tells Nmap to perform a version detection scan (-A) and to use a timing template of level 4 (-T4) on lab2.
