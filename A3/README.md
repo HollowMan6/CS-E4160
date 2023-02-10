@@ -25,7 +25,7 @@ The following picture shows the categories of different IPv6 address types, and 
 
 ### 1.1 In Unique Local IPv6 Unicast Address space. how does a device know whether the IPv6 address it just created for itself is unique?
 
-In the Unique Local IPv6 Unicast Address space, a device can determine whether the IPv6 address it has created for itself is unique by using the Network Discovery for IP version 6 (IPv6) protocol, also known as Neighbor Discovery (ND). ND allows devices to determine the uniqueness of their addresses by sending Neighbor Solicitation messages to determine if the address is already in use by another device. If no response is received, the device assumes that the address is unique.
+Using the Network Discovery for IPv6 protocol, it also known as Neighbor Discovery (ND). ND allows devices to determine the uniqueness of their addresses by sending Neighbor Solicitation messages to determine if the address is already in use by another device. If no response is received, the device assumes that the address is unique.
 
 ### 1.2 Explain 3 methods of dynamically allocating IPv6 global unicast addresses?
 
@@ -52,53 +52,144 @@ You can do the configurations using ip(8). Editing /etc/network/interfaces is a 
 The above sysctl commands enable IPv6 forwarding on all interfaces (`net.ipv6.conf.all.forwarding=1`) and on the default configuration (`net.ipv6.conf.default.forwarding=1`), allowing the machine to act as a router. The third command `net.ipv6.conf.enp0s3.accept_ra=0` disables router advertisement acceptance on the interface enp0s3 to prevent misconfiguration.
 
 ### 2.2 The subnets used belong to Unique Local IPv6 Unicast Address space. Explain what this means and what is the format of such addresses.
-Unique Local IPv6 Unicast Addresses (ULA) are IPv6 addresses meant for use within a private network and not intended for global routing on the Internet. These addresses are defined by the `FC00::/7` prefix and are assigned randomly. They allow for communication within a network while preventing accidental routing of these addresses to the Internet. The format of ULA addresses is `FC00::/7` followed by a 40-bit identifier, making the full address format `FC00::/7:40-bit-identifier`.
+Unique Local IPv6 Unicast Addresses (ULA) are IPv6 addresses meant for use within a private network and not intended for global routing on the Internet. These addresses are defined by the `fc00::/7` prefix and are assigned randomly. They allow for communication within a network while preventing accidental routing of these addresses to the Internet. The format of ULA addresses is `fc00::/7` followed by a 40-bit identifier, making the full address format `fc00::/7:[40-bit-identifier]`.
 
 ### 2.3 List all commands that you used to add static addresses to lab1, lab2 and lab3. Explain one of the add address commands.
 
-`sudo ip -6 addr add fd01:2345:6789:abc1::1/64 dev enp0s8`
-
-The command ip -6 addr add adds an IPv6 address to the specified device (in this case, enp0s8). The address being added is fd01:2345:6789:abc1::1 with a subnet prefix of /64.
+The command `ip -6 addr` add adds an IPv6 address to the specified device. The address being added with a subnet prefix of /64.
 
 ### 2.4 Show the command that you used to add the route to lab3 on lab2, and explain it.
 
-`sudo ip -6 route add fd01:2345:6789:abc2::3 via fd01:2345:6789:abc1::1 dev enp0s8`
+`sudo ip -6 route add fd01:2345:6789:abc2::/64 via fd01:2345:6789:abc1::1 dev enp0s8`
 
-The command ip -6 route add adds a route for the IPv6 address fd01:2345:6789:abc2::3 to the specified device (in this case, enp0s8). The route uses fd01:2345:6789:abc1::1 as the gateway (specified with the via option), meaning that packets destined for the address fd01:2345:6789:abc2::3 will be sent to fd01:2345:6789:abc1::1 for forwarding.
+The command `ip -6 route add` adds a route for the IPv6 subnet `fd01:2345:6789:abc2::/64` to the specified device (in this case, enp0s8). The route uses `fd01:2345:6789:abc1::1` as the gateway (specified with the via option), meaning that packets destined for the address `fd01:2345:6789:abc2::3` will be sent to `fd01:2345:6789:abc1::1` for forwarding.
 
 ### 2.5 Show enp0s8 interface information from lab2, as well as the IPv6 routing table. Explain the IPv6 information from the interface and the routing table. What does a double colon (::) indicate?
 
-`sudo ip -6 addr show dev enp0s8`
+```bash
+vagrant@lab2:~$ sudo ip -6 addr show dev enp0s8
+3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    inet6 fd01:2345:6789:abc1::2/64 scope global 
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a00:27ff:fe27:b32a/64 scope link 
+       valid_lft forever preferred_lft forever
+vagrant@lab2:~$ ip -6 route
+::1 dev lo proto kernel metric 256 pref medium
+fd01:2345:6789:abc1::/64 dev enp0s8 proto kernel metric 256 pref medium
+fd01:2345:6789:abc2::/64 via fd01:2345:6789:abc1::1 dev enp0s8 metric 1024 pref medium
+fe80::/64 dev enp0s3 proto kernel metric 256 pref medium
+fe80::/64 dev enp0s8 proto kernel metric 256 pref medium
+```
 
-To view the IPv6 routing table, you can use the "ip -6 route" command.
+- `3: enp0s8`: This is the interface index and name.
+- `<BROADCAST,MULTICAST,UP,LOWER_UP>`: These are flags that indicate the state of the interface. "UP" means that the interface is active and running. "BROADCAST" and "MULTICAST" indicate that the interface supports broadcast and multicast, respectively. "LOWER_UP" means that the lower-level protocol is running and the interface is up.
+- `mtu 1500`: This is the maximum transmission unit (MTU) of the interface, which is the maximum size of a single packet that can be transmitted over the network.
+- `qdisc fq_codel`: This is the queueing discipline (qdisc) used by the interface. "fq_codel" is a specific type of qdisc that uses the Fair Queuing Codel algorithm for managing network traffic.
+- `state UP`: This is the state of the interface, indicating whether it is up (active) or down (inactive).
+- `group default`: This is the name of the group to which the interface belongs.
+- `qlen 1000`: This is the maximum number of packets that can be queued for transmission on the interface.
+- `inet6 fd01:2345:6789:abc1::2/64`: This is an IPv6 address assigned to the interface, in CIDR notation. The address is "fd01:2345:6789:abc1::2" and the subnet mask is "/64".
+- `scope global`: This is the scope of the IPv6 address, indicating the portion of the network in which the address is valid. In this case, the scope is "global", meaning that the address can be used on the entire internet.
+- `valid_lft forever`: This is the "valid lifetime" of the IPv6 address, indicating how long the address will remain assigned to the interface. In this case, the lifetime is "forever", meaning that the address will remain assigned indefinitely.
+- `preferred_lft forever:` This is the "preferred lifetime" of the IPv6 address, indicating how long the address will be the preferred address for the interface. In this case, the lifetime is "forever", meaning that the address will be the preferred address indefinitely.
 
-The information displayed in the interface will include the interface name (enp0s8), the state (UP or DOWN), the MAC address, and the IPv6 addresses assigned to the interface.
-
-The IPv6 routing table will show the routes to various network destinations, including the next hop, the metric, and the device used to reach the destination.
+- `::1 dev lo proto kernel metric 256 pref medium`: This line describes a route in the IPv6 routing table. The destination network is "::1", which is the loopback address. The interface through which the network can be reached is "lo" (the loopback interface). The routing protocol used is "kernel", meaning that it is managed by the kernel. The metric is "256", which is a value used to determine the preferred path to the destination network. The preference is "medium", which is a value used to determine the order in which routes are selected when multiple routes to the same destination exist.
+- `fd01:2345:6789:abc1::/64 dev enp0s8 proto kernel metric 256 pref medium`: This line describes a route in the IPv6 routing table. The destination network is "fd01:2345:6789:abc1::/64". The interface through which the network can be reached is "enp0s8". The routing protocol used is "kernel", meaning that it is managed by the kernel. The metric is "256", which is a value used to determine the preferred path to the destination network. The preference is "medium", which is a value used to determine the order in which routes are selected when multiple routes to the same destination exist.
+- `fd01:2345:6789:abc2::/64 via fd01:2345:6789:abc1::1 dev enp0s8 metric 1024 pref medium`: This line describes a route in the IPv6 routing table. The destination network is "fd01:2345:6789:abc2::/64". The next hop (the intermediate device through which the network can be reached) is "fd01:2345:6789:abc1::1". The interface through which the next hop can be reached is "enp0s8". The routing protocol used is "kernel", meaning that it is managed by the kernel. The metric is "1024", which is a value used to determine the preferred path to the destination network. The preference is "medium", which is a value used to determine the order in which routes are selected when multiple routes to the same destination exist.
+- `fe80::/64 dev enp0s3 proto kernel metric 256 pref medium`: This line describes a route in the IPv6 routing table. The destination network is "fe80::/64". The interface through which the network can be reached is "enp0s3". The routing protocol used is "kernel", meaning that it is managed by the kernel. The metric is "256", which is a value used to determine the preferred path to the destination network. The preference is "medium", which is a value used to determine the order in which routes are selected when multiple routes to the same destination exist.
+- `fe80::/64 dev enp0s8 proto kernel metric 256 pref medium`: This line describes a route in the IPv6 routing table. The destination network is "fe80::/64". The interface through which the network can be reached is "enp0s8". The routing protocol used is "kernel", meaning that it is managed by the kernel. The metric is "256", which is a value used to determine the preferred path to the destination network. The preference is "medium", which is a value used to determine the order in which routes are selected when multiple routes to the same destination exist.
 
 A double colon (::) in an IPv6 address indicates that one or more groups of 16-bits are omitted and replaced with a double colon. It represents consecutive groups of zeros and is used as a shorthand for writing IPv6 addresses.
 
 ### 2.6 Start tcpdump to capture ICMPv6 packets on each machine. From lab2, ping the lab1 and lab3 IPv6 addresses using ping6(8). You should get a return packet for each ping you have sent. If not, recheck your network configuration. Show the headers of a successful ping return packet. Show ping6 output as well as tcpdump output.
 
-To start tcpdump to capture ICMPv6 packets on a machine, run the following command in the terminal:
-
-sudo tcpdump -i `<interface>` -vvv icmp6
-
-Replace `<interface>` with the appropriate network interface, for example enp0s8.
-
-To ping the IPv6 address of another machine using ping6, run the following command in the terminal:
-
-ping6 `<IPv6 address>`
-
-Replace `<IPv6 address>` with the appropriate IPv6 address of the target machine.
-
-The headers of a successful ping return packet will show information about the ICMPv6 packet, including the source and destination addresses, the type and code of the ICMPv6 message, and the payload.
-
-The ping6 output will display the number of packets sent, received, and lost, as well as the round-trip time for each packet.
-
-The tcpdump output will show detailed information about each captured ICMPv6 packet, including the source and destination addresses, the type and code of the ICMPv6 message, and the payload.
-
-A double colon (::) in an IPv6 address is a shorthand notation that represents multiple contiguous zero blocks. For example, 2001:: is equivalent to 2001:0:0:0:0:0:0:0.
+```bash
+vagrant@lab1:~$ sudo tcpdump -i enp0s8 -i enp0s9
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on enp0s9, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+21:18:56.706162 IP6 fd01:2345:6789:abc1::2 > fd01:2345:6789:abc2::2: ICMP6, echo request, id 9, seq 1, length 64
+21:18:56.706594 IP6 fd01:2345:6789:abc2::2 > fd01:2345:6789:abc1::2: ICMP6, echo reply, id 9, seq 1, length 64
+21:18:57.749048 IP6 fd01:2345:6789:abc1::2 > fd01:2345:6789:abc2::2: ICMP6, echo request, id 9, seq 2, length 64
+21:18:57.749680 IP6 fd01:2345:6789:abc2::2 > fd01:2345:6789:abc1::2: ICMP6, echo reply, id 9, seq 2, length 64
+21:19:01.902119 IP6 lab1 > fd01:2345:6789:abc2::2: ICMP6, neighbor solicitation, who has fd01:2345:6789:abc2::2, length 32
+21:19:01.902807 IP6 fd01:2345:6789:abc2::2 > lab1: ICMP6, neighbor advertisement, tgt is fd01:2345:6789:abc2::2, length 24
+21:19:01.926934 IP6 fe80::a00:27ff:fe9f:1789 > lab1: ICMP6, neighbor solicitation, who has lab1, length 32
+21:19:01.926952 IP6 lab1 > fe80::a00:27ff:fe9f:1789: ICMP6, neighbor advertisement, tgt is lab1, length 24
+21:19:07.031313 IP6 lab1 > fe80::a00:27ff:fe9f:1789: ICMP6, neighbor solicitation, who has fe80::a00:27ff:fe9f:1789, length 32
+21:19:07.032009 IP6 fe80::a00:27ff:fe9f:1789 > lab1: ICMP6, neighbor advertisement, tgt is fe80::a00:27ff:fe9f:1789, length 24
+21:19:07.038854 IP6 fe80::a00:27ff:fe9f:1789 > lab1: ICMP6, neighbor solicitation, who has lab1, length 32
+21:19:07.038861 IP6 lab1 > fe80::a00:27ff:fe9f:1789: ICMP6, neighbor advertisement, tgt is lab1, length 24
+vagrant@lab2:~$ sudo tcpdump -i enp0s8
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on enp0s8, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+21:18:52.547048 IP6 lab2 > fd01:2345:6789:abc2::1: ICMP6, echo request, id 8, seq 1, length 64
+21:18:52.547507 IP6 fd01:2345:6789:abc2::1 > lab2: ICMP6, echo reply, id 8, seq 1, length 64
+21:18:53.581710 IP6 lab2 > fd01:2345:6789:abc2::1: ICMP6, echo request, id 8, seq 2, length 64
+21:18:53.582420 IP6 fd01:2345:6789:abc2::1 > lab2: ICMP6, echo reply, id 8, seq 2, length 64
+21:18:56.696062 IP6 lab2 > fd01:2345:6789:abc2::2: ICMP6, echo request, id 9, seq 1, length 64
+21:18:56.697255 IP6 fd01:2345:6789:abc2::2 > lab2: ICMP6, echo reply, id 9, seq 1, length 64
+21:18:57.739165 IP6 lab2 > fd01:2345:6789:abc2::2: ICMP6, echo request, id 9, seq 2, length 64
+21:18:57.740343 IP6 fd01:2345:6789:abc2::2 > lab2: ICMP6, echo reply, id 9, seq 2, length 64
+21:18:57.792558 IP6 lab2 > fd01:2345:6789:abc1::1: ICMP6, neighbor solicitation, who has fd01:2345:6789:abc1::1, length 32
+21:18:57.793299 IP6 fd01:2345:6789:abc1::1 > lab2: ICMP6, neighbor advertisement, tgt is fd01:2345:6789:abc1::1, length 24
+21:18:57.814861 IP6 fe80::a00:27ff:feda:ce6e > lab2: ICMP6, neighbor solicitation, who has lab2, length 32
+21:18:57.814882 IP6 lab2 > fe80::a00:27ff:feda:ce6e: ICMP6, neighbor advertisement, tgt is lab2, length 24
+21:19:02.917241 IP6 lab2 > fe80::a00:27ff:feda:ce6e: ICMP6, neighbor solicitation, who has fe80::a00:27ff:feda:ce6e, length 32
+21:19:02.917875 IP6 fe80::a00:27ff:feda:ce6e > lab2: ICMP6, neighbor advertisement, tgt is fe80::a00:27ff:feda:ce6e, length 24
+21:19:02.917876 IP6 fe80::a00:27ff:feda:ce6e > lab2: ICMP6, neighbor solicitation, who has lab2, length 32
+21:19:02.917911 IP6 lab2 > fe80::a00:27ff:feda:ce6e: ICMP6, neighbor advertisement, tgt is lab2, length 24
+21:19:04.715977 IP6 lab2 > fd01:2345:6789:abc1::1: ICMP6, echo request, id 11, seq 1, length 64
+21:19:04.716472 IP6 fd01:2345:6789:abc1::1 > lab2: ICMP6, echo reply, id 11, seq 1, length 64
+21:19:05.731907 IP6 lab2 > fd01:2345:6789:abc1::1: ICMP6, echo request, id 11, seq 2, length 64
+21:19:05.732761 IP6 fd01:2345:6789:abc1::1 > lab2: ICMP6, echo reply, id 11, seq 2, length 64
+vagrant@lab3:~$ sudo tcpdump -i enp0s8
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on enp0s8, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+21:18:56.695596 IP6 fd01:2345:6789:abc1::2 > lab3: ICMP6, echo request, id 9, seq 1, length 64
+21:18:56.695625 IP6 lab3 > fd01:2345:6789:abc1::2: ICMP6, echo reply, id 9, seq 1, length 64
+21:18:57.738671 IP6 fd01:2345:6789:abc1::2 > lab3: ICMP6, echo request, id 9, seq 2, length 64
+21:18:57.738698 IP6 lab3 > fd01:2345:6789:abc1::2: ICMP6, echo reply, id 9, seq 2, length 64
+21:19:01.891598 IP6 fe80::a00:27ff:feac:eaca > lab3: ICMP6, neighbor solicitation, who has lab3, length 32
+21:19:01.891640 IP6 lab3 > fe80::a00:27ff:feac:eaca: ICMP6, neighbor advertisement, tgt is lab3, length 24
+21:19:01.915798 IP6 lab3 > fd01:2345:6789:abc2::1: ICMP6, neighbor solicitation, who has fd01:2345:6789:abc2::1, length 32
+21:19:01.916198 IP6 fd01:2345:6789:abc2::1 > lab3: ICMP6, neighbor advertisement, tgt is fd01:2345:6789:abc2::1, length 24
+21:19:07.020591 IP6 fe80::a00:27ff:feac:eaca > lab3: ICMP6, neighbor solicitation, who has lab3, length 32
+21:19:07.020617 IP6 lab3 > fe80::a00:27ff:feac:eaca: ICMP6, neighbor advertisement, tgt is lab3, length 24
+21:19:07.027510 IP6 lab3 > fe80::a00:27ff:feac:eaca: ICMP6, neighbor solicitation, who has fe80::a00:27ff:feac:eaca, length 32
+21:19:07.028120 IP6 fe80::a00:27ff:feac:eaca > lab3: ICMP6, neighbor advertisement, tgt is fe80::a00:27ff:feac:eaca, length 24
+vagrant@lab2:~$ ping6 fd01:2345:6789:abc2::1
+PING fd01:2345:6789:abc2::1(fd01:2345:6789:abc2::1) 56 data bytes
+64 bytes from fd01:2345:6789:abc2::1: icmp_seq=1 ttl=64 time=0.471 ms
+64 bytes from fd01:2345:6789:abc2::1: icmp_seq=2 ttl=64 time=0.732 ms
+^C
+--- fd01:2345:6789:abc2::1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1035ms
+rtt min/avg/max/mdev = 0.471/0.601/0.732/0.130 ms
+vagrant@lab2:~$ ping6 fd01:2345:6789:abc2::2
+PING fd01:2345:6789:abc2::2(fd01:2345:6789:abc2::2) 56 data bytes
+64 bytes from fd01:2345:6789:abc2::2: icmp_seq=1 ttl=63 time=1.20 ms
+64 bytes from fd01:2345:6789:abc2::2: icmp_seq=2 ttl=63 time=1.20 ms
+^C
+--- fd01:2345:6789:abc2::2 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1043ms
+rtt min/avg/max/mdev = 1.201/1.201/1.201/0.000 ms
+vagrant@lab2:~$ ping6 fd01:2345:6789:abc1::2
+PING fd01:2345:6789:abc1::2(fd01:2345:6789:abc1::2) 56 data bytes
+64 bytes from fd01:2345:6789:abc1::2: icmp_seq=1 ttl=64 time=0.018 ms
+64 bytes from fd01:2345:6789:abc1::2: icmp_seq=2 ttl=64 time=0.044 ms
+^C
+--- fd01:2345:6789:abc1::2 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1032ms
+rtt min/avg/max/mdev = 0.018/0.031/0.044/0.013 ms
+vagrant@lab2:~$ ping6 fd01:2345:6789:abc1::1
+PING fd01:2345:6789:abc1::1(fd01:2345:6789:abc1::1) 56 data bytes
+64 bytes from fd01:2345:6789:abc1::1: icmp_seq=1 ttl=64 time=0.503 ms
+64 bytes from fd01:2345:6789:abc1::1: icmp_seq=2 ttl=64 time=0.876 ms
+^C
+--- fd01:2345:6789:abc1::1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1016ms
+rtt min/avg/max/mdev = 0.503/0.689/0.876/0.186 ms
+```
 
 ## 3. IPv6 Router Advertisement Daemon
 Now we will set up Router Advertisement Daemon on lab1 to automatically assign IPv6 addresses to VMs connected to intnet1 and intnet 2.
@@ -138,7 +229,10 @@ interface enp0s9
 };
 ```
 
-The options in the configuration file are not all mandatory, but some of them are:
+- `AdvManagedFlag on`: This line indicates that the Managed Address Configuration flag in Router Advertisements (RAs) is set to "on". The Managed Address Configuration flag indicates whether stateful address autoconfiguration, such as DHCPv6, is available on the network. If the flag is set to "on", stateful address autoconfiguration is available; if it is set to "off", stateful address autoconfiguration is not available.
+- `AdvOtherConfigFlag on`: This line indicates that the Other Configuration flag in Router Advertisements (RAs) is set to "on". The Other Configuration flag indicates whether stateless address autoconfiguration, such as SLAAC, is available on the network. If the flag is set to "on", stateless address autoconfiguration is available; if it is set to "off", stateless address autoconfiguration is not available.
+
+These options are mandatory:
 
 - `interface` specifies the interface name to which the prefix will be advertised.
 - `AdvSendAdvert on;` enables the advertisement of prefixes on the interface.
@@ -147,12 +241,34 @@ The options in the configuration file are not all mandatory, but some of them ar
 - `AdvAutonomous on;` indicates that the prefix can be used for autoconfiguration of addresses.
 
 ### 3.2 Analyze captured packets and explain what happens when you set up the interface on lab2.
+```bash
+vagrant@lab2:~$ sudo tcpdump -i enp0s8 icmp6
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on enp0s8, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+22:26:45.340617 IP6 _gateway > lab2: ICMP6, neighbor solicitation, who has lab2, length 32
+22:26:45.340641 IP6 lab2 > _gateway: ICMP6, neighbor advertisement, tgt is lab2, length 24
+22:26:50.446987 IP6 lab2 > _gateway: ICMP6, neighbor solicitation, who has _gateway, length 32
+22:26:50.447704 IP6 _gateway > lab2: ICMP6, neighbor advertisement, tgt is _gateway, length 24
+22:28:14.881438 IP6 lab2 > fd01:2345:6789:abc2:a00:27ff:fe64:6423: ICMP6, echo request, id 2, seq 1, length 64
+22:28:14.882936 IP6 _gateway > ff02::1:ffdb:4a05: ICMP6, neighbor solicitation, who has lab2, length 32
+22:28:14.882947 IP6 lab2 > _gateway: ICMP6, neighbor advertisement, tgt is lab2, length 32
+22:28:14.883218 IP6 fd01:2345:6789:abc2:a00:27ff:fe64:6423 > lab2: ICMP6, echo reply, id 2, seq 1, length 64
+22:28:15.890040 IP6 lab2 > fd01:2345:6789:abc2:a00:27ff:fe64:6423: ICMP6, echo request, id 2, seq 2, length 64
+```
+
 When the interface on lab2 is set up, it listens for Router Advertisement packets. The router advertisement packets contain information about the prefixes available on the network, as well as other information such as the default gateway and the preferred and valid lifetimes of the prefixes. Upon receipt of the router advertisement packet, lab2 uses the information to autoconfigure its address.
 
 ### 3.3 How is the host-specific part of the address determined in this case?
 The host-specific part of the address is determined by the host generating a random interface identifier (IID) and concatenating it with the prefix obtained from the router advertisement. The IID is usually generated from the MAC address of the interface.
 
 ### 3.4 Show and explain the output of a traceroute(1) from lab2 to lab3.
+```bash
+vagrant@lab2:~$ traceroute -6 fd01:2345:6789:abc2:a00:27ff:fe64:6423
+traceroute to fd01:2345:6789:abc2:a00:27ff:fe64:6423 (fd01:2345:6789:abc2:a00:27ff:fe64:6423), 30 hops max, 80 byte packets
+ 1  fd01:2345:6789:abc1:a00:27ff:fe38:7e4d (fd01:2345:6789:abc1:a00:27ff:fe38:7e4d)  0.698 ms  0.672 ms  0.664 ms
+ 2  fd01:2345:6789:abc2:a00:27ff:fe64:6423 (fd01:2345:6789:abc2:a00:27ff:fe64:6423)  1.088 ms  1.082 ms  1.274 ms
+```
+
 The `traceroute` command shows the path taken by packets from the source to the destination. The output of a `traceroute` from lab2 to lab3 would show the hop-by-hop progression of the packets, with each hop representing a router on the network. The output would also show the round-trip time (RTT) for each hop. The IPv6 addresses of the routers can be seen in the output, allowing one to trace the path taken by the packets and identify any potential issues along the way.
 
 ## 4. Cofigure IPv6 over IPv4

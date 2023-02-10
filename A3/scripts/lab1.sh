@@ -30,3 +30,41 @@ EOL
 
 chmod 600 ~/.ssh/*
 
+sudo sysctl -w net.ipv6.conf.default.forwarding=1
+sudo sysctl -w net.ipv6.conf.all.forwarding=1
+sudo sysctl -w net.ipv6.conf.enp0s3.accept_ra=0
+
+# 2.3
+sudo ip -6 addr add fd01:2345:6789:abc1::1/64 dev enp0s8
+sudo ip -6 addr add fd01:2345:6789:abc2::1/64 dev enp0s9
+
+sudo apt install radvd
+sudo ip -6 addr del fd01:2345:6789:abc1::1/64 dev enp0s8
+sudo ip -6 addr del fd01:2345:6789:abc2::1/64 dev enp0s9
+sudo tee /etc/radvd.conf <<EOL
+interface enp0s8
+{
+  AdvSendAdvert on;
+  AdvManagedFlag on;
+  AdvOtherConfigFlag on;
+  prefix fd01:2345:6789:abc1::/64
+  {
+    AdvOnLink on;
+    AdvAutonomous on;
+  };
+};
+
+interface enp0s9
+{
+  AdvSendAdvert on;
+  AdvManagedFlag on;
+  AdvOtherConfigFlag on;
+  prefix fd01:2345:6789:abc2::/64
+  {
+    AdvOnLink on;
+    AdvAutonomous on;
+  };
+};
+EOL
+
+# sudo systemctl start radvd
