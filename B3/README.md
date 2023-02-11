@@ -47,6 +47,42 @@ options {
 
 The "directory" option sets the location where the nameserver should store its cache. The "forwarders" option specifies the IP address of the public nameserver (in this case, Google's public DNS server at 8.8.8.8) to which queries for which the nameserver does not have a cached answer should be forwarded. The "allow-recursion" and "allow-query" options restrict the nameserver to accept recursive queries and queries from local networks only. The "recursion" option is set to "yes" to enable the nameserver to perform recursive queries on behalf of its clients.
 
+```bash
+vagrant@ns1:~$ sudo tail -f /var/log/syslog
+Feb 11 20:18:21 ubuntu-jammy named[3225]: network unreachable resolving './NS/IN': 2001:500:2d::d#53
+Feb 11 20:18:21 ubuntu-jammy named[3225]: network unreachable resolving './NS/IN': 2001:dc3::35#53
+Feb 11 20:18:21 ubuntu-jammy named[3225]: network unreachable resolving './NS/IN': 2001:500:12::d0d#53
+Feb 11 20:18:21 ubuntu-jammy named[3225]: network unreachable resolving './NS/IN': 2001:7fe::53#53
+Feb 11 20:18:21 ubuntu-jammy named[3225]: zone localhost/IN: loaded serial 2
+Feb 11 20:18:21 ubuntu-jammy named[3225]: all zones loaded
+Feb 11 20:18:21 ubuntu-jammy named[3225]: running
+Feb 11 20:18:21 ubuntu-jammy systemd[1]: Started BIND Domain Name Server.
+Feb 11 20:18:21 ubuntu-jammy named[3225]: managed-keys-zone: Key 20326 for zone . is now trusted (acceptance timer complete)
+Feb 11 20:18:21 ubuntu-jammy named[3225]: resolver priming query complete: success
+^C
+vagrant@ns1:~$ dig google.com @127.0.0.1
+
+; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> google.com @127.0.0.1
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 1649
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 865cd85eca12b8bd0100000063e7f81b91ab36c6de8c7050 (good)
+;; QUESTION SECTION:
+;google.com.			IN	A
+
+;; ANSWER SECTION:
+google.com.		300	IN	A	142.250.186.46
+
+;; Query time: 120 msec
+;; SERVER: 127.0.0.1#53(127.0.0.1) (UDP)
+;; WHEN: Sat Feb 11 20:18:35 UTC 2023
+;; MSG SIZE  rcvd: 83
+```
+
 ### 2.2 What is a recursive query? How does it differ from an iterative query?
 A recursive query is a type of DNS query where the nameserver is expected to find the answer to the query by either resolving the query itself or forwarding the query to another nameserver. The nameserver is responsible for providing the client with the final answer.
 
@@ -64,44 +100,56 @@ Similarly create a reverse mapping zone c.b.a.in-addr.arpa, where a, b and c are
 Add a master zone entry for .insec and c.b.a.in-addr.arpa (see above) in named.conf. Reload bind's configuration files and watch the log for errors. Try to resolve ns1.insec from your client.
 
 ### 3.1 Explain your configuration.
-In order to create a custom top-level domain (TLD) .insec and configure ns1 as the primary master for the zone, the following steps would be required:
+The configuration I provided is for a primary master nameserver for the ".insec" domain, using the bind9 DNS server software. The nameserver is set up to be authoritative for the ".insec" domain and its reverse mapping zone, and to serve DNS queries for the domain and cache the results.
 
-- Create Zone Definitions: A zone definition file needs to be created, which contains the information about the domain, its nameservers, and other relevant details.
-- Reverse Mapping: The reverse mapping is necessary to match IP addresses with domain names, which will be used for reverse lookups.
-- Authoritative Server: The named.conf file needs to be edited to specify that ns1 will be the authoritative server for .insec and c.b.a.in-addr.arpa zones.
-- Zone File: A zone file for .insec needs to be created, which contains the information about the domain, its nameservers, and IP addresses.
-- Refresh and Retry Time Limits: The refresh and retry time limits should be set to 60 seconds in the zone file.
-- A Record: The A record for ns1.insec should be set to the IP address of the virtual machine.
-- Reverse Mapping Zone: A reverse mapping zone c.b.a.in-addr.arpa needs to be created, where a, b, and c are the first three numbers of the virtual machine's IP address.
-- Reload Configuration Files: After making changes to the named.conf and zone file, the configuration files need to be reloaded for the changes to take effect.
+The configuration includes two zone files, one for the ".insec" domain and one for its reverse mapping zone. The zone files specify the SOA (Start of Authority) record, NS (Name Server) record, and A (Address) record for the host "ns1.insec". The SOA record provides information about the primary name server for the zone, the hostmaster's email address, and various time limits for refresh, retry, expire, and minimum TTL values.
+
+The named configuration file, /etc/bind/named.conf, specifies the zones for ".insec" and its reverse mapping, and the location of the corresponding zone files. The configuration also disallows updates to the zones.
+
+Finally, the bind9 service is restarted to apply the changes, and the syslog is checked for any error messages. The nameserver can be tested from a client machine using the dig command, which should resolve the host "ns1.insec" to its IP address.
 
 ### 3.2 Provide the output of dig(1) for a successful query.
 The output of a successful dig(1) query for ns1.insec would look like this:
 ```bash
-; <<>> DiG 9.16.1-Ubuntu <<>> ns1.insec
+vagrant@ns1:~$ dig ns1.insec @127.0.0.1
+
+; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> ns1.insec @127.0.0.1
 ;; global options: +cmd
 ;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 56651
-;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 1
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 58477
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
 
 ;; OPT PSEUDOSECTION:
-; EDNS: version: 0, flags:; udp: 65494
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 65d2806e84f6b1be0100000063e804209ecab9dd3a441755 (good)
 ;; QUESTION SECTION:
 ;ns1.insec.			IN	A
 
 ;; ANSWER SECTION:
-ns1.insec.		60	IN	A	a.b.c.xxx
+ns1.insec.		60	IN	A	192.168.1.2
 
-;; AUTHORITY SECTION:
-insec.			60	IN	NS	ns1.insec.
+;; Query time: 0 msec
+;; SERVER: 127.0.0.1#53(127.0.0.1) (UDP)
+;; WHEN: Sat Feb 11 21:09:52 UTC 2023
+;; MSG SIZE  rcvd: 82
+vagrant@ns1:~$ dig -x 192.168.1.2 @127.0.0.1
 
-;; ADDITIONAL SECTION:
-ns1.insec.		60	IN	A	a.b.c.xxx
+; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> -x 192.168.1.2 @127.0.0.1
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: SERVFAIL, id: 61488
+;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
 
-;; Query time: 5 msec
-;; SERVER: 127.0.0.1#53(127.0.0.1)
-;; WHEN: Tue Feb 08 21:08:47 UTC 2022
-;; MSG SIZE  rcvd: 75
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 38a402ecccad7d6f0100000063e805eb05b7d02d401056f7 (good)
+;; QUESTION SECTION:
+;2.1.168.192.in-addr.arpa.	IN	PTR
+
+;; Query time: 0 msec
+;; SERVER: 127.0.0.1#53(127.0.0.1) (UDP)
+;; WHEN: Sat Feb 11 21:17:31 UTC 2023
+;; MSG SIZE  rcvd: 81
 ```
 ### 3.3 How would you add an IPv6 address entry to a zone file?
 An IPv6 address entry can be added to a zone file by adding an AAAA record. The format for an AAAA record is:
@@ -131,7 +179,26 @@ To configure ns2 as a slave for the .insec domain, the following changes were ma
 - The configuration files for both servers were reloaded to apply the changes.
 
 ### 4.3 Provide the output of dig(1) for a successful query from the slave server. Are there any differences to the queries from the master?
-The output of a successful dig query from the slave server should be similar to the output from the master server. However, there may be some differences, such as the source IP address of the query and the source of the answer. The slave server's response will come from its cache, while the master server's response will come directly from its authoritative data.
+```bash
+vagrant@ns2:~$ dig ns1.insec @127.0.0.1
+
+; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> ns1.insec @127.0.0.1
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: SERVFAIL, id: 3794
+;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 008ec1fdec58a5290100000063e80acf1e913a415a183d82 (good)
+;; QUESTION SECTION:
+;ns1.insec.			IN	A
+
+;; Query time: 0 msec
+;; SERVER: 127.0.0.1#53(127.0.0.1) (UDP)
+;; WHEN: Sat Feb 11 21:38:23 UTC 2023
+;; MSG SIZE  rcvd: 66
+```
 
 ## 5. Create a subdomain .not.insec.
 Similar to above, create a subdomain .not.insec, use ns2 as a master and ns3 as a slave. Remember to add an entry for subdomain NS in the .not.insec zone files.
@@ -155,20 +222,140 @@ Reload configuration files in all three servers and check the logs for any error
 
 Verify that the zone files get transferred to the slave servers ns3. This can be done by checking if the zone file for .not.insec exists on ns3 and if it contains the latest updates.
 
-To check for successful queries from all three name servers, the output of dig(1) can be obtained by running the following command:
-
-```bash
-dig <hostname> @<nameserver IP address>
-```
-
-For example, to check for a successful query from ns1 for a host in the .not.insec domain, the command will be:
-
-```bash
-dig <hostname> @ns1
-```
-
 ### 5.2 Provide the output of dig(1) for successful queries from all the three name servers.
-The output of dig(1) should show the query being resolved successfully and show the relevant A, PTR, and NS records for the queried host. If there are no differences in the queries from the master and slave servers, the output of dig(1) should be the same for both.
+```bash
+vagrant@ns1:~$ dig ns2.not.insec @ns2
+
+; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> ns2.not.insec @ns2
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 37105
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: a5b6c720961fd41a0100000063e80f7cfa1d439583a6b60f (good)
+;; QUESTION SECTION:
+;ns2.not.insec.			IN	A
+
+;; ANSWER SECTION:
+ns2.not.insec.		60	IN	A	192.168.1.3
+
+;; Query time: 4 msec
+;; SERVER: 192.168.1.3#53(ns2) (UDP)
+;; WHEN: Sat Feb 11 21:58:20 UTC 2023
+;; MSG SIZE  rcvd: 86
+
+vagrant@ns1:~$ dig ns2.not.insec @ns3
+
+; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> ns2.not.insec @ns3
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 27887
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 7576873c88786d0d0100000063e80f818b1a2db08265a50e (good)
+;; QUESTION SECTION:
+;ns2.not.insec.			IN	A
+
+;; ANSWER SECTION:
+ns2.not.insec.		60	IN	A	192.168.1.3
+
+;; Query time: 0 msec
+;; SERVER: 192.168.1.4#53(ns3) (UDP)
+;; WHEN: Sat Feb 11 21:58:25 UTC 2023
+;; MSG SIZE  rcvd: 86
+
+vagrant@ns2:~$ dig ns2.not.insec @127.0.0.1
+
+; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> ns2.not.insec @127.0.0.1
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 51813
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: ca92281e82c7d4a30100000063e80f8e92f6724ceabdbb23 (good)
+;; QUESTION SECTION:
+;ns2.not.insec.			IN	A
+
+;; ANSWER SECTION:
+ns2.not.insec.		60	IN	A	192.168.1.3
+
+;; Query time: 0 msec
+;; SERVER: 127.0.0.1#53(127.0.0.1) (UDP)
+;; WHEN: Sat Feb 11 21:58:38 UTC 2023
+;; MSG SIZE  rcvd: 86
+
+vagrant@ns2:~$ dig ns2.not.insec @ns3
+
+; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> ns2.not.insec @ns3
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 26924
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 7facdac0939c3d000100000063e80f919a9a7f7247feef71 (good)
+;; QUESTION SECTION:
+;ns2.not.insec.			IN	A
+
+;; ANSWER SECTION:
+ns2.not.insec.		60	IN	A	192.168.1.3
+
+;; Query time: 0 msec
+;; SERVER: 192.168.1.4#53(ns3) (UDP)
+;; WHEN: Sat Feb 11 21:58:41 UTC 2023
+;; MSG SIZE  rcvd: 86
+
+vagrant@ns3:~$ dig ns2.not.insec @ns2
+
+; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> ns2.not.insec @ns2
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 45300
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 9c130a889f1c69160100000063e80f9d09c2addfd6c509a6 (good)
+;; QUESTION SECTION:
+;ns2.not.insec.			IN	A
+
+;; ANSWER SECTION:
+ns2.not.insec.		60	IN	A	192.168.1.3
+
+;; Query time: 8 msec
+;; SERVER: 192.168.1.3#53(ns2) (UDP)
+;; WHEN: Sat Feb 11 21:58:53 UTC 2023
+;; MSG SIZE  rcvd: 86
+
+vagrant@ns3:~$ dig ns2.not.insec @127.0.0.1
+
+; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> ns2.not.insec @127.0.0.1
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 15615
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 0a6f83e128bca4490100000063e80faadddbcaa1f2342bf2 (good)
+;; QUESTION SECTION:
+;ns2.not.insec.			IN	A
+
+;; ANSWER SECTION:
+ns2.not.insec.		60	IN	A	192.168.1.3
+
+;; Query time: 0 msec
+;; SERVER: 127.0.0.1#53(127.0.0.1) (UDP)
+;; WHEN: Sat Feb 11 21:59:06 UTC 2023
+;; MSG SIZE  rcvd: 86
+```
 
 ## 6. Implement transaction signatures
 One of the shortcomings of DNS is that the zone transfers are not authenticated, which opens up an opportunity to alter the zone files during updates. Prevent this by enhancing the .not.insec -domain to implement transaction signatures.
@@ -201,6 +388,8 @@ to implement transaction signatures in the .not.insec domain, the following step
 - Make the key available to both name servers by including the key file in their named.conf files.
 - Configure the servers to only allow transfers signed with the key by adding the appropriate statements in the named.conf files.
 - Verify that an unauthenticated transfer fails and that an authenticated transfer using the transaction signature succeeds.
+
+`sudo tail -f /var/log/syslog`
 
 ### 6.2 TSIG is one way to implement transaction signatures. DNSSEC describes another, SIG(0). Explain the differences.
 TSIG (Transaction SIGnature) is one way to implement transaction signatures in DNS. TSIG uses a shared secret key to sign the messages exchanged between name servers, providing authentication and integrity protection.
