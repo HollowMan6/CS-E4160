@@ -39,8 +39,6 @@ sudo modprobe sit
 sudo ip route del default via 10.0.2.2
 sudo route add default gw 192.168.2.1
 sudo ip tunnel add 6rd mode sit local 192.168.1.1 ttl 64
-sudo ip tunnel 6rd dev 6rd 6rd-prefix 2a02:2b64::/32
-sudo ip addr add 2a02:2b64:c0a8:0101::1/32 dev 6rd
+sudo ip addr add 2a02:2b64:c0a8:101::1/32 dev 6rd
 sudo ip link set 6rd up
-# sudo ip route add ::/0 via ::${GATEWAY} dev 6rd
-sudo ip -6 route add fd01:2345:6789:abc2::/64 via ::192.168.2.1 dev 6rd
+sudo route -6 add default gw ::192.168.2.1
