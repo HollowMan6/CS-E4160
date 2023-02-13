@@ -285,16 +285,24 @@ ipv4 over ipv6
 6. Make sure only lab3 has internet access. Configure your routing so that lab3 is used as the internet gateway
 
 ### 4.1 Show that you can ping6 lab2 from lab4
-To verify that lab4 can ping lab2, we can use the ping6 command on lab4 with the IPv6 address of lab2 as the target. If successful, this will demonstrate that there is a functioning IPv6 link between lab2 and lab4.
 
 ### 4.2 Show that you can ping 8.8.8.8 from lab1 and lab4
-To verify that lab1 and lab4 can access the Internet, we can use the ping command on both lab1 and lab4 with 8.8.8.8 as the target. This is the IP address of the Google public DNS server, and a successful ping will indicate that both lab1 and lab4 have Internet connectivity via lab3 as the Internet gateway.
 
 ### 4.3 Show that you can open https://ipv6.google.com/ on lab1.
-We can use a web browser on lab1 to access the URL https://ipv6.google.com/. If the page loads successfully, this will indicate that lab1 has Internet connectivity over IPv6.
 
 ### 4.4 Explain your solution, why did you use this method over the other options
-We used this method because it demonstrates a common scenario in which IPv6-only nodes communicate with the Internet through an IPv4 link. The method uses a combination of IPv6 links between the internal nodes and an IPv4 link between the border routers (lab1 and lab3) to achieve this communication. This solution is effective and simple, but it has security issues such as exposing the internal IPv6 network to the Internet and relying on the security of the border routers.
+I use 6rd because it's easy to deploy.
+- 6rd (IPv6 Rapid Deployment) is an IPv6 transition mechanism that enables service providers to quickly deploy IPv6 in their existing IPv4 infrastructure. It uses a combination of IPv4 and IPv6 addresses to allow IPv6-enabled devices to communicate over the IPv4 infrastructure. 6rd is simple to deploy and is well suited for service providers that have limited IPv4 address space or want to provide IPv6 connectivity to their customers quickly.
+- NAT64 (Network Address Translation 64) is a technology that enables IPv6-only devices to communicate with IPv4-only devices. NAT64 uses a combination of IPv4 and IPv6 addresses to translate IPv6 packets into IPv4 packets, and vice versa. NAT64 is well suited for enterprise networks that have a mix of IPv4 and IPv6 devices and want to provide seamless IPv6 connectivity to their users.
+- MAP (Mapping of Address and Port) is a technology that enables service providers to provide IPv6 connectivity to their customers over an IPv4 infrastructure. MAP uses a combination of IPv4 and IPv6 addresses to translate IPv6 packets into IPv4 packets and vice versa. MAP is similar to NAT64 in its functionality but is designed specifically for service providers who want to provide IPv6 connectivity to their customers over an IPv4 infrastructure.
 
 ### 4.5 Are there security issues with your solution? what and how to fix them
-Security issues with this solution include the exposure of the internal IPv6 network to the Internet, lack of control over the routing of IPv6 packets, and a reliance on the security of the border routers. To fix these issues, we can implement security measures such as firewalls, network segmentation, and routing policies to restrict access to the internal network and ensure secure communication. Additionally, the border routers should be hardened and monitored to prevent malicious attacks or exploitation.
+- Address Spoofing: 6rd uses a combination of IPv4 and IPv6 addresses, which increases the risk of address spoofing. Attackers can use forged IPv6 addresses to gain access to the network, making it difficult to identify the source of the attack.
+- Increased Attack Surface: 6rd increases the attack surface by introducing a new layer of network infrastructure that must be secured. Service providers must take steps to secure the 6rd border relays and ensure that they are not susceptible to attacks.
+- Interoperability Issues: 6rd uses a combination of IPv4 and IPv6 addresses, which can cause interoperability issues with some applications and devices. Service providers must ensure that their 6rd implementation is compatible with the devices and applications used in their network.
+
+Fixes:
+- Secure Configuration: Configuring access control lists (ACLs) to control access to the network.
+- Network Segmentation: Segment the 6rd network into smaller, more manageable components to reduce the attack surface and make it easier to secure the network.
+- Firewall and Intrusion Detection/Prevention Systems (IDS/IPS): Implement firewalls and IDS/IPS systems to control access to the network and prevent attacks.
+- IPv6 Address Management: Properly manage the IPv6 address space to prevent address spoofing and ensure that only authorized devices have access to the network.

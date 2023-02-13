@@ -35,8 +35,10 @@ EOL
 
 chmod 600 ~/.ssh/*
 
-sudo modprobe sit
 sudo ip route del default via 10.0.2.2
+
+sudo ip6tables -t nat -A POSTROUTING -o enp0s8 -j MASQUERADE
+sudo modprobe sit
 sudo route add default gw 192.168.2.1
 sudo ip tunnel add 6rd mode sit local 192.168.1.1 ttl 64
 sudo ip addr add 2a02:2b64:c0a8:101::1/32 dev 6rd

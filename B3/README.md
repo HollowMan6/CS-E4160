@@ -168,7 +168,11 @@ On the master server, add an entry (A, PTR and NS -records) for your slave serve
 Reload configuration files in both machines and watch the logs. Verify that the zone files get transferred to the slave. Try to resolve machines in the .insec domain through both servers.
 
 ### 4.1 Demonstrate the successful zone file transfer.
-To demonstrate the successful zone file transfer, you can use the dig command to query the SOA (Start of Authority) record of the .insec domain on both the master and slave servers. If the transfer was successful, the serial number of the SOA record should be the same on both servers. You can also check the logs on both the master and slave servers for any errors or messages related to zone transfers.
+```bash
+dig ns1.insec SOA @ns1
+dig ns1.insec SOA @ns2
+```
+Use the dig command to query the SOA (Start of Authority) record of the .insec domain on both the master and slave servers. If the transfer was successful, the serial number of the SOA record should be the same on both servers. Or check the logs on both the master and slave servers for any errors or messages related to zone transfers.
 
 ### 4.2 Explain the changes you made.
 To configure ns2 as a slave for the .insec domain, the following changes were made:
