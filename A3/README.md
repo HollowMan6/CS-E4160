@@ -27,6 +27,14 @@ The following picture shows the categories of different IPv6 address types, and 
 
 Using the Network Discovery for IPv6 protocol, it also known as Neighbor Discovery (ND). ND allows devices to determine the uniqueness of their addresses by sending Neighbor Solicitation messages to determine if the address is already in use by another device. If no response is received, the device assumes that the address is unique.
 
+RFC 4193 - Unique Local IPv6 Unicast Addresses
+3.2.1.  Locally Assigned Global IDs Locally assigned Global IDs MUST be generated with a pseudo-random algorithm consistent with [RANDOM]. 
+
+Section 3.2.2 describes a suggested algorithm.
+It is important that all sites generating Global IDs use a functionally similar algorithm to ensure there is a high probability of uniqueness.
+
+The use of a pseudo-random algorithm to generate Global IDs in the locally assigned prefix gives an assurance that any network numbered using such a prefix is highly unlikely to have that address space clash with any other network that has another locally assigned prefix allocated to it.  This is a particularly useful property when considering a number of scenarios including networks that merge, overlapping VPN address space, or hosts mobile between such networks.
+
 ### 1.2 Explain 3 methods of dynamically allocating IPv6 global unicast addresses?
 
 Three methods of dynamically allocating IPv6 global unicast addresses are:
@@ -52,7 +60,15 @@ You can do the configurations using ip(8). Editing /etc/network/interfaces is a 
 The above sysctl commands enable IPv6 forwarding on all interfaces (`net.ipv6.conf.all.forwarding=1`) and on the default configuration (`net.ipv6.conf.default.forwarding=1`), allowing the machine to act as a router. The third command `net.ipv6.conf.enp0s3.accept_ra=0` disables router advertisement acceptance on the interface enp0s3 to prevent misconfiguration.
 
 ### 2.2 The subnets used belong to Unique Local IPv6 Unicast Address space. Explain what this means and what is the format of such addresses.
-Unique Local IPv6 Unicast Addresses (ULA) are IPv6 addresses meant for use within a private network and not intended for global routing on the Internet. These addresses are defined by the `fc00::/7` prefix and are assigned randomly. They allow for communication within a network while preventing accidental routing of these addresses to the Internet. The format of ULA addresses is `fc00::/7` followed by a 40-bit identifier, making the full address format `fc00::/7:[40-bit-identifier]`.
+Unique Local IPv6 Unicast Addresses (ULA) are IPv6 addresses meant for use within a private network and not intended for global routing on the Internet. These addresses are defined by the `fc00::/7` prefix and are assigned randomly. They allow for communication within a network while preventing accidental routing of these addresses to the Internet. The format of ULA addresses is `fc00::/7` followed by a 40-bit identifier.
+
+https://en.wikipedia.org/wiki/Unique_local_address
+
+Unique local address format
+
+| bits | 7 | 1 | 40 | 16 | 64 |
+| --- | --- | --- | --- | --- | --- |
+| field | prefix | L | random | subnet id | interface identifier |
 
 ### 2.3 List all commands that you used to add static addresses to lab1, lab2 and lab3. Explain one of the add address commands.
 
@@ -231,29 +247,30 @@ interface enp0s9
 
 - `AdvManagedFlag on`: This line indicates that the Managed Address Configuration flag in Router Advertisements (RAs) is set to "on". The Managed Address Configuration flag indicates whether stateful address autoconfiguration, such as DHCPv6, is available on the network. If the flag is set to "on", stateful address autoconfiguration is available; if it is set to "off", stateful address autoconfiguration is not available.
 - `AdvOtherConfigFlag on`: This line indicates that the Other Configuration flag in Router Advertisements (RAs) is set to "on". The Other Configuration flag indicates whether stateless address autoconfiguration, such as SLAAC, is available on the network. If the flag is set to "on", stateless address autoconfiguration is available; if it is set to "off", stateless address autoconfiguration is not available.
+- `AdvAutonomous on;` indicates that the prefix can be used for autoconfiguration of addresses.
+- `AdvOnLink on;` indicates that the prefix is on-link, meaning it can be used as the destination address of a packet.
 
 These options are mandatory:
 
 - `interface` specifies the interface name to which the prefix will be advertised.
 - `AdvSendAdvert on;` enables the advertisement of prefixes on the interface.
 - `prefix` specifies the prefix to be advertised.
-- `AdvOnLink on;` indicates that the prefix is on-link, meaning it can be used as the destination address of a packet.
-- `AdvAutonomous on;` indicates that the prefix can be used for autoconfiguration of addresses.
 
 ### 3.2 Analyze captured packets and explain what happens when you set up the interface on lab2.
 ```bash
 vagrant@lab2:~$ sudo tcpdump -i enp0s8 icmp6
 tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
 listening on enp0s8, link-type EN10MB (Ethernet), snapshot length 262144 bytes
-22:26:45.340617 IP6 _gateway > lab2: ICMP6, neighbor solicitation, who has lab2, length 32
-22:26:45.340641 IP6 lab2 > _gateway: ICMP6, neighbor advertisement, tgt is lab2, length 24
-22:26:50.446987 IP6 lab2 > _gateway: ICMP6, neighbor solicitation, who has _gateway, length 32
-22:26:50.447704 IP6 _gateway > lab2: ICMP6, neighbor advertisement, tgt is _gateway, length 24
-22:28:14.881438 IP6 lab2 > fd01:2345:6789:abc2:a00:27ff:fe64:6423: ICMP6, echo request, id 2, seq 1, length 64
-22:28:14.882936 IP6 _gateway > ff02::1:ffdb:4a05: ICMP6, neighbor solicitation, who has lab2, length 32
-22:28:14.882947 IP6 lab2 > _gateway: ICMP6, neighbor advertisement, tgt is lab2, length 32
-22:28:14.883218 IP6 fd01:2345:6789:abc2:a00:27ff:fe64:6423 > lab2: ICMP6, echo reply, id 2, seq 1, length 64
-22:28:15.890040 IP6 lab2 > fd01:2345:6789:abc2:a00:27ff:fe64:6423: ICMP6, echo request, id 2, seq 2, length 64
+11:13:11.666324 IP6 _gateway > ip6-allnodes: ICMP6, router advertisement, length 56
+11:13:11.788405 IP6 :: > ff02::1:ffe5:caed: ICMP6, neighbor solicitation, who has fd01:2345:6789:abc1:a00:27ff:fee5:caed, length 32
+11:13:12.252843 IP6 :: > ff02::1:ff74:59ee: ICMP6, neighbor solicitation, who has lab2, length 32
+11:13:12.678525 IP6 _gateway > ip6-allnodes: ICMP6, router advertisement, length 56
+vagrant@lab3:~$ sudo tcpdump -i enp0s8 icmp6
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on enp0s8, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+11:13:11.685059 IP6 _gateway > ip6-allnodes: ICMP6, router advertisement, length 56
+11:13:11.968663 IP6 :: > ff02::1:ff06:fb12: ICMP6, neighbor solicitation, who has fd01:2345:6789:abc2:a00:27ff:fe06:fb12, length 32
+11:13:12.103962 IP6 :: > ff02::1:fffe:daa9: ICMP6, neighbor solicitation, who has lab3, length 32
 ```
 
 When the interface on lab2 is set up, it listens for Router Advertisement packets. The router advertisement packets contain information about the prefixes available on the network, as well as other information such as the default gateway and the preferred and valid lifetimes of the prefixes. Upon receipt of the router advertisement packet, lab2 uses the information to autoconfigure its address.
@@ -269,6 +286,7 @@ traceroute to fd01:2345:6789:abc2:a00:27ff:fe64:6423 (fd01:2345:6789:abc2:a00:27
  2  fd01:2345:6789:abc2:a00:27ff:fe64:6423 (fd01:2345:6789:abc2:a00:27ff:fe64:6423)  1.088 ms  1.082 ms  1.274 ms
 ```
 
+La2 enp0s8 -> La1 enp0s8 -> La3 enp0s8.
 The `traceroute` command shows the path taken by packets from the source to the destination. The output of a `traceroute` from lab2 to lab3 would show the hop-by-hop progression of the packets, with each hop representing a router on the network. The output would also show the round-trip time (RTT) for each hop. The IPv6 addresses of the routers can be seen in the output, allowing one to trace the path taken by the packets and identify any potential issues along the way.
 
 ## 4. Cofigure IPv6 over IPv4
@@ -288,7 +306,7 @@ ipv4 over ipv6
 
 ### 4.2 Show that you can ping 8.8.8.8 from lab1 and lab4
 
-### 4.3 Show that you can open https://ipv6.google.com/ on lab1.
+### 4.3 Show that you can open https://ipv6.google.com/ on lab4.
 
 ### 4.4 Explain your solution, why did you use this method over the other options
 I use 6rd because it's easy to deploy.

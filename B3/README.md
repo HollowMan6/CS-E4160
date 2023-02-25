@@ -27,6 +27,11 @@ Configure the nameserver to forward all queries for which it does not have a cac
 Start your nameserver and watch the logfile /var/log/syslog for any error messages. Check that you can resolve addresses through your own nameserver from the client machine. You can use dig(1) to do the lookups.
 
 ### 2.1 Explain the configuration you used.
+
+```bash
+sudo rndc flush
+```
+
 To set up a caching-only nameserver, the configuration file (typically named.conf or named.conf.options) should be updated with the following parameters:
 
 ```conf
@@ -189,19 +194,22 @@ vagrant@ns2:~$ dig ns1.insec @127.0.0.1
 ; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> ns1.insec @127.0.0.1
 ;; global options: +cmd
 ;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: SERVFAIL, id: 3794
-;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 46940
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
 
 ;; OPT PSEUDOSECTION:
 ; EDNS: version: 0, flags:; udp: 1232
-; COOKIE: 008ec1fdec58a5290100000063e80acf1e913a415a183d82 (good)
+; COOKIE: 1b24efa6f26f7a780100000063fa5c3d2dcebb4912b5cea2 (good)
 ;; QUESTION SECTION:
 ;ns1.insec.			IN	A
 
+;; ANSWER SECTION:
+ns1.insec.		60	IN	A	192.168.1.2
+
 ;; Query time: 0 msec
 ;; SERVER: 127.0.0.1#53(127.0.0.1) (UDP)
-;; WHEN: Sat Feb 11 21:38:23 UTC 2023
-;; MSG SIZE  rcvd: 66
+;; WHEN: Sat Feb 25 19:06:37 UTC 2023
+;; MSG SIZE  rcvd: 82
 ```
 
 ## 5. Create a subdomain .not.insec.
