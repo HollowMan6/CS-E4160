@@ -44,3 +44,10 @@ sudo ip tunnel add 6rd mode sit local 192.168.1.1 ttl 64
 sudo ip addr add 2a02:2b64:c0a8:101::1/32 dev 6rd
 sudo ip link set 6rd up
 sudo route -6 add default gw ::192.168.2.1
+
+sudo ip -6 tunnel add ip6tnl1 mode ip4ip6 remote fd01:2345:6789:abc1::2 local fd01:2345:6789:abc1::1
+sudo ip link set dev ip6tnl1 up
+sudo ip -6 route add fd01:2345:6789:abc1:: dev ip6tnl1 metric 1
+sudo ip addr add 10.0.1.1/24 dev ip6tnl1
+
+sudo iptables -t nat -A POSTROUTING -o enp0s9 -j MASQUERADE
