@@ -25,7 +25,7 @@ server 192.168.1.3 {
 
 zone "not.insec" {
    type slave;
-   file "/etc/bind/db.not.insec";
+   file "/var/cache/bind/db.not.insec";
    masters { 192.168.1.3; };
 };
 EOL

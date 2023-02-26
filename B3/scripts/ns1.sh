@@ -40,8 +40,8 @@ options {
     directory "/var/cache/bind";
 
     forwarders {
-        127.0.0.1 port 5353;
-        # 8.8.8.8;
+        # 127.0.0.1 port 5353;
+        8.8.8.8;
     };
 
     recursion yes;
@@ -62,10 +62,14 @@ sudo tee /etc/bind/db.insec <<EOL
 			60	)	; minimum (1 minute)
 			
 @	IN	NS	ns1
+@	IN	NS	ns2
 ns1	IN	A	192.168.1.2
 ns2 IN  A   192.168.1.3
 ns3 IN  A   192.168.1.4
 client IN  A   192.168.1.5
+
+not.insec.	IN	NS	ns2.not.insec.
+ns2.not.insec.	IN	A	192.168.1.3
 EOL
 
 sudo tee /etc/bind/1.168.192.in-addr.arpa <<EOL
@@ -78,6 +82,7 @@ sudo tee /etc/bind/1.168.192.in-addr.arpa <<EOL
 			60	)	; minimum (1 minute)
 			
 @	IN	NS	ns1
+@	IN	NS	ns2
 192.168.1.2	IN	PTR	ns1
 192.168.1.3	IN	PTR	ns2
 192.168.1.4	IN	PTR	ns3
@@ -98,6 +103,11 @@ zone "1.168.192.in-addr.arpa" {
 	allow-transfer {192.168.1.3; };
     also-notify {192.168.1.3; };
 };
+
+zone "not.insec" {
+    type forward;
+    forwards { 192.168.1.3; };
+};
 EOL
 
 sudo service bind9 restart
@@ -116,7 +126,7 @@ DNSMASQ_LISTENING=local
 BLOCKING_ENABLED=true
 EOL
 
-curl -L https://install.pi-hole.net | sudo bash /dev/stdin --unattended
+curl -L https://install.pi-hole.net | sudo PIHOLE_SKIP_OS_CHECK=true bash /dev/stdin --unattended
 pihole -b google.com
 # pihole -b -d google.com
 sudo tee -a /etc/dnsmasq.conf <<EOL

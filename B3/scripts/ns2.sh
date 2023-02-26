@@ -23,7 +23,9 @@ sudo tee /etc/bind/db.not.insec <<EOL
 			60	)	; minimum (1 minute)
 			
 @	IN	NS	ns2
+@	IN	NS	ns3
 ns2 IN  A   192.168.1.3
+ns3 IN  A   192.168.1.4
 EOL
 
 # tsig-keygen -a HMAC-SHA1 ns2.not.insec
@@ -35,7 +37,7 @@ key ns2.key {
 
 zone "insec" {
    type slave;
-   file "/etc/bind/db.insec";
+   file "/var/cache/bind/db.insec";
    masters { 192.168.1.2; };
 };
 
@@ -47,7 +49,7 @@ zone "not.insec" {
 
 zone "1.168.192.in-addr.arpa" {
    type slave;
-   file "/etc/bind/db.1.168.192";
+   file "/var/cache/bind/db.1.168.192";
    masters { 192.168.1.2; };
 };
 EOL

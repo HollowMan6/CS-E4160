@@ -179,6 +179,10 @@ dig ns1.insec SOA @ns2
 ```
 Use the dig command to query the SOA (Start of Authority) record of the .insec domain on both the master and slave servers. If the transfer was successful, the serial number of the SOA record should be the same on both servers. Or check the logs on both the master and slave servers for any errors or messages related to zone transfers.
 
+```bash
+rndc reload insec
+```
+
 ### 4.2 Explain the changes you made.
 To configure ns2 as a slave for the .insec domain, the following changes were made:
 
@@ -220,6 +224,11 @@ N.B You are creating a subdomain of .insec, so a simple copy paste of 4 won't wo
 Reload configuration files in all three servers (watch the logs) and verify that the zone files get transferred to both slave servers. Try to resolve machines in .not.insec -domain from all three servers.
 
 ### 5.1 Explain the changes you made.
+
+```bash
+rndc reload not.insec
+```
+
 To create a subdomain .not.insec, the following steps can be taken:
 
 On the master server ns2, create a zone file for .not.insec with the necessary A, PTR, and NS records. Make sure to increment the serial number for the zone.
@@ -236,136 +245,68 @@ Verify that the zone files get transferred to the slave servers ns3. This can be
 
 ### 5.2 Provide the output of dig(1) for successful queries from all the three name servers.
 ```bash
-vagrant@ns1:~$ dig ns2.not.insec @ns2
+vagrant@client:~$ dig ns2.not.insec @ns1
+
+; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> ns2.not.insec @ns1
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 3667
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: d372257ccfdc5ffa0100000063fb7cabcabed07a242da2e3 (good)
+;; QUESTION SECTION:
+;ns2.not.insec.			IN	A
+
+;; ANSWER SECTION:
+ns2.not.insec.		53	IN	A	192.168.1.3
+
+;; Query time: 3 msec
+;; SERVER: 192.168.1.2#53(ns1) (UDP)
+;; WHEN: Sun Feb 26 15:37:15 UTC 2023
+;; MSG SIZE  rcvd: 86
+vagrant@client:~$ dig ns2.not.insec @ns2
 
 ; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> ns2.not.insec @ns2
 ;; global options: +cmd
 ;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 37105
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 2479
 ;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
 
 ;; OPT PSEUDOSECTION:
 ; EDNS: version: 0, flags:; udp: 1232
-; COOKIE: a5b6c720961fd41a0100000063e80f7cfa1d439583a6b60f (good)
+; COOKIE: c075c4419ca943aa0100000063fb7ce7dff62dbfcfc345cc (good)
 ;; QUESTION SECTION:
 ;ns2.not.insec.			IN	A
 
 ;; ANSWER SECTION:
 ns2.not.insec.		60	IN	A	192.168.1.3
 
-;; Query time: 4 msec
+;; Query time: 3 msec
 ;; SERVER: 192.168.1.3#53(ns2) (UDP)
-;; WHEN: Sat Feb 11 21:58:20 UTC 2023
+;; WHEN: Sun Feb 26 15:38:15 UTC 2023
 ;; MSG SIZE  rcvd: 86
-
-vagrant@ns1:~$ dig ns2.not.insec @ns3
+vagrant@client:~$ dig ns2.not.insec @ns3
 
 ; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> ns2.not.insec @ns3
 ;; global options: +cmd
 ;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 27887
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 50427
 ;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
 
 ;; OPT PSEUDOSECTION:
 ; EDNS: version: 0, flags:; udp: 1232
-; COOKIE: 7576873c88786d0d0100000063e80f818b1a2db08265a50e (good)
+; COOKIE: 8a3e8065a072d6b00100000063fb7cf1b83cbb4955ae8bcb (good)
 ;; QUESTION SECTION:
 ;ns2.not.insec.			IN	A
 
 ;; ANSWER SECTION:
 ns2.not.insec.		60	IN	A	192.168.1.3
 
-;; Query time: 0 msec
+;; Query time: 3 msec
 ;; SERVER: 192.168.1.4#53(ns3) (UDP)
-;; WHEN: Sat Feb 11 21:58:25 UTC 2023
-;; MSG SIZE  rcvd: 86
-
-vagrant@ns2:~$ dig ns2.not.insec @127.0.0.1
-
-; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> ns2.not.insec @127.0.0.1
-;; global options: +cmd
-;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 51813
-;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
-
-;; OPT PSEUDOSECTION:
-; EDNS: version: 0, flags:; udp: 1232
-; COOKIE: ca92281e82c7d4a30100000063e80f8e92f6724ceabdbb23 (good)
-;; QUESTION SECTION:
-;ns2.not.insec.			IN	A
-
-;; ANSWER SECTION:
-ns2.not.insec.		60	IN	A	192.168.1.3
-
-;; Query time: 0 msec
-;; SERVER: 127.0.0.1#53(127.0.0.1) (UDP)
-;; WHEN: Sat Feb 11 21:58:38 UTC 2023
-;; MSG SIZE  rcvd: 86
-
-vagrant@ns2:~$ dig ns2.not.insec @ns3
-
-; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> ns2.not.insec @ns3
-;; global options: +cmd
-;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 26924
-;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
-
-;; OPT PSEUDOSECTION:
-; EDNS: version: 0, flags:; udp: 1232
-; COOKIE: 7facdac0939c3d000100000063e80f919a9a7f7247feef71 (good)
-;; QUESTION SECTION:
-;ns2.not.insec.			IN	A
-
-;; ANSWER SECTION:
-ns2.not.insec.		60	IN	A	192.168.1.3
-
-;; Query time: 0 msec
-;; SERVER: 192.168.1.4#53(ns3) (UDP)
-;; WHEN: Sat Feb 11 21:58:41 UTC 2023
-;; MSG SIZE  rcvd: 86
-
-vagrant@ns3:~$ dig ns2.not.insec @ns2
-
-; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> ns2.not.insec @ns2
-;; global options: +cmd
-;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 45300
-;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
-
-;; OPT PSEUDOSECTION:
-; EDNS: version: 0, flags:; udp: 1232
-; COOKIE: 9c130a889f1c69160100000063e80f9d09c2addfd6c509a6 (good)
-;; QUESTION SECTION:
-;ns2.not.insec.			IN	A
-
-;; ANSWER SECTION:
-ns2.not.insec.		60	IN	A	192.168.1.3
-
-;; Query time: 8 msec
-;; SERVER: 192.168.1.3#53(ns2) (UDP)
-;; WHEN: Sat Feb 11 21:58:53 UTC 2023
-;; MSG SIZE  rcvd: 86
-
-vagrant@ns3:~$ dig ns2.not.insec @127.0.0.1
-
-; <<>> DiG 9.18.1-1ubuntu1.3-Ubuntu <<>> ns2.not.insec @127.0.0.1
-;; global options: +cmd
-;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 15615
-;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
-
-;; OPT PSEUDOSECTION:
-; EDNS: version: 0, flags:; udp: 1232
-; COOKIE: 0a6f83e128bca4490100000063e80faadddbcaa1f2342bf2 (good)
-;; QUESTION SECTION:
-;ns2.not.insec.			IN	A
-
-;; ANSWER SECTION:
-ns2.not.insec.		60	IN	A	192.168.1.3
-
-;; Query time: 0 msec
-;; SERVER: 127.0.0.1#53(127.0.0.1) (UDP)
-;; WHEN: Sat Feb 11 21:59:06 UTC 2023
+;; WHEN: Sun Feb 26 15:38:25 UTC 2023
 ;; MSG SIZE  rcvd: 86
 ```
 
@@ -417,4 +358,4 @@ Install Pi-hole on ns1 and configure the client to use it as their DNS. Perform 
 Pi-hole blocks domains on a DNS level by intercepting the DNS queries made by the client and matching the domain name being queried with the domains in its blacklist. If the domain is found in the blacklist, Pi-hole returns an IP address that leads to nowhere, effectively blocking the client's access to the domain.
 
 ### 7.2 How could you use Pi-hole in combination with your own DNS server, such as your caching-only nameserver? 
-Pi-hole can be used in combination with a caching-only nameserver by configuring Pi-hole to forward the DNS queries to the caching-only nameserver. This way, Pi-hole can be used as a first line of defense in blocking unwanted domains, while the caching-only nameserver can be used to improve the performance of the DNS resolution by caching the frequently used domains.
+Pi-hole can be used in combination with a caching-only nameserver by configuring the caching-only nameserver to forward the DNS queries to Pi-hole. This way, Pi-hole can be used as a first line of defense in blocking unwanted domains, while the caching-only nameserver can be used to improve the performance of the DNS resolution by caching the frequently used domains.
