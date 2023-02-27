@@ -16,6 +16,8 @@ sudo ip -6 route add fd01:2345:6789:abc2::/64 via fd01:2345:6789:abc1::1 dev enp
 # # 3
 # sudo ip -6 addr flush dev enp0s8
 # sudo ip link set down dev enp0s8
+
 # sudo ip link set up dev enp0s8
 # sudo tcpdump -i enp0s8 icmp6
+
 sudo apt install traceroute

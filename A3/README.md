@@ -119,6 +119,38 @@ A double colon (::) in an IPv6 address indicates that one or more groups of 16-b
 
 ### 2.6 Start tcpdump to capture ICMPv6 packets on each machine. From lab2, ping the lab1 and lab3 IPv6 addresses using ping6(8). You should get a return packet for each ping you have sent. If not, recheck your network configuration. Show the headers of a successful ping return packet. Show ping6 output as well as tcpdump output.
 
+<!-- 
+‵‵‵log
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|Version| Traffic Class |           Flow Label                  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|         Payload Length        |  Next Header  |   Hop Limit   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
++                                                               +
+|                         Source Address                        |
++                                                               +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
++                                                               +
+|                      Destination Address                      |
++                                                               +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+```
+-->
+
+- Version: This field indicates the version of the IP protocol being used. For IPv6, this value is always set to 6.
+- Traffic Class: This field is used to prioritize traffic and control congestion. It consists of two subfields: the 6-bit Differentiated Services Code Point (DSCP) and the 2-bit Explicit Congestion Notification (ECN) field.
+- Flow Label: This field is used to identify packets that belong to the same flow or session. It is a 20-bit field that is set by the sender and should be kept unchanged by intermediate routers.
+- Payload Length: This field indicates the length of the payload (i.e., the data being transmitted) in bytes.
+- Next Header: This field indicates the protocol of the next header in the packet after the IPv6 header. For a successful ping return packet, this value would typically be set to ICMPv6 (Internet Control Message Protocol version 6).
+- Hop Limit: This field limits the number of routers that a packet can traverse before being discarded. It is decremented by each router that forwards the packet, and the packet is discarded when the hop limit reaches zero.
+- Source Address: This field indicates the IPv6 address of the sender.
+- Destination Address: This field indicates the IPv6 address of the intended recipient (i.e., the address that was pinged).
+
+
 ```bash
 vagrant@lab1:~$ sudo tcpdump -i enp0s8 -i enp0s9
 tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
@@ -244,6 +276,8 @@ interface enp0s9
   };
 };
 ```
+
+https://linux.die.net/man/5/radvd.conf
 
 - `AdvManagedFlag on`: This line indicates that the Managed Address Configuration flag in Router Advertisements (RAs) is set to "on". The Managed Address Configuration flag indicates whether stateful address autoconfiguration, such as DHCPv6, is available on the network. If the flag is set to "on", stateful address autoconfiguration is available; if it is set to "off", stateful address autoconfiguration is not available.
 - `AdvOtherConfigFlag on`: This line indicates that the Other Configuration flag in Router Advertisements (RAs) is set to "on". The Other Configuration flag indicates whether stateless address autoconfiguration, such as SLAAC, is available on the network. If the flag is set to "on", stateless address autoconfiguration is available; if it is set to "off", stateless address autoconfiguration is not available.
