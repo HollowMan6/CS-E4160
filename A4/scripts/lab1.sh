@@ -21,11 +21,6 @@ Host lab2
     AddKeysToAgent yes
     IdentityFile ~/.ssh/id_ed25519
     ForwardAgent yes
-
-Host lab3
-    AddKeysToAgent yes
-    IdentityFile ~/.ssh/id_ed25519
-    ForwardAgent yes
 EOL
 
 chmod 600 ~/.ssh/*
