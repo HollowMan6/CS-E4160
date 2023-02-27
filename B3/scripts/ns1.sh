@@ -93,20 +93,20 @@ sudo tee -a /etc/bind/named.conf.local <<EOL
 zone "insec" {
 	type master;
 	file "/etc/bind/db.insec";
-    allow-transfer {192.168.1.3; };
-    also-notify {192.168.1.3; };
+	allow-transfer {192.168.1.3; };
+	also-notify {192.168.1.3; };
 };
 
 zone "1.168.192.in-addr.arpa" {
 	type master;
 	file "/etc/bind/db.1.168.192";
 	allow-transfer {192.168.1.3; };
-    also-notify {192.168.1.3; };
+	also-notify {192.168.1.3; };
 };
 
 zone "not.insec" {
-    type forward;
-    forwards { 192.168.1.3; };
+	type forward;
+	forwarders { 192.168.1.3; };
 };
 EOL
 
