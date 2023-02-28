@@ -132,21 +132,22 @@ Here are the commands I used to create and mount an encrypted filesystem in a fi
 # create a 32 MB file with random bytes
 dd if=/dev/urandom of=loop.img bs=1k count=32k
 
+FREEDEVICE=$(losetup -f)
 # create a loopback device for the file
-losetup /dev/loop0 loop.img
+sudo losetup $FREEDEVICE loop.img
 
 # format the loopback device with LUKS encryption
-cryptsetup luksFormat /dev/loop0
+sudo cryptsetup luksFormat --batch-mode $FREEDEVICE
 
 # open the encrypted device and map it to a pseudo-device
-cryptsetup luksOpen /dev/loop0 loopfs
+echo "" | sudo cryptsetup luksOpen $FREEDEVICE loopfs
 
 # create an ext2 filesystem on the pseudo-device
-mkfs.ext2 /dev/mapper/loopfs
+sudo mkfs.ext2 /dev/mapper/loopfs
 
 # mount the encrypted filesystem
-mkdir /mnt/loopfs
-mount /dev/mapper/loopfs /mnt/loopfs
+sudo mkdir /mnt/loopfs
+sudo mount /dev/mapper/loopfs /mnt/loopfs
 ```
 
 ### 3.2 Explain the concepts of the pseudo-device and loopback device.
@@ -183,6 +184,7 @@ Assuming that gocryptfs is already installed on the system, the following comman
 
 Create a directory to mount the encrypted filesystem:
 ```bash
+mkdir ~/encrypted
 mkdir ~/gocryptfs
 ```
 
@@ -234,29 +236,39 @@ veracrypt -h
 I chose to use VeraCrypt because it is a widely used open-source software forked from TrueCrypt and is actively maintained with regular updates and security patches. Additionally, it has support for creating hidden volumes and plausible deniability.
 
 ### 5.2 Provide the commands that you used to create the volumes. Demonstrate that you can mount the outer and the hidden volume.
+https://documentation.help/VeraCrypt/Personal%20Iterations%20Multiplier%20(PIM).html
+
+Create the keyfiles:
+```bash
+head -c 4000 </dev/urandom > outer_keyfile
+head -c 4000 </dev/urandom > hidden_keyfile
+```
+
 To create the outer volume, I used the following command:
 
 ```bash
-veracrypt -c /path/to/outer_volume --size=100M
-This creates an encrypted volume of size 100MB at /path/to/outer_volume. I then created a password for the outer volume and selected the encryption algorithm and hash. After the outer volume was created, I created a hidden volume inside the outer volume using the following command:
+head -c 4000 </dev/urandom | veracrypt -c outer_volume --size=100M --encryption=AES --hash=SHA-512 --filesystem=Ext4 --volume-type=normal -p 123456 --pim=20 -k=outer_keyfile
 ```
+
+This creates an encrypted volume of size 100MB at outer_volume. I then created a password for the outer volume and selected the encryption algorithm and hash. After the outer volume was created, I created a hidden volume inside the outer volume using the following command:
 
 ```bash
-veracrypt --create /path/to/outer_volume --size=50M --type=hidden --encryption=AES --hash=SHA-512 --filesystem=NTFS
+head -c 4000 </dev/urandom | veracrypt -c outer_volume --size=50M --encryption=AES --hash=SHA-512 --filesystem=Ext4 --volume-type=hidden -p 123456 --pim=20 -k=hidden_keyfile
 ```
 
-This creates a hidden volume of size 50MB inside the outer volume at /path/to/outer_volume. I then created a password for the hidden volume and selected the encryption algorithm, hash, and filesystem.
+This creates a hidden volume of size 50MB inside the outer volume at outer_volume.
 
 To mount the outer volume, I used the following command:
 
 ```bash
-veracrypt /path/to/outer_volume /path/to/mount_point
+mkdir mount_veracrypt_outer
+mkdir mount_veracrypt_hidden
+veracrypt outer_volume mount_veracrypt_outer -p 123456 --pim=20 -k=outer_keyfile --protect-hidden yes --protection-password=123456 --protection-pim=20 --protection-keyfiles=hidden_keyfile
 ```
 
-To mount the hidden volume, I used the following command:
-
+unmount the outer volume:
 ```bash
-veracrypt --mount /path/to/outer_volume /path/to/mount_point --hidden
+veracrypt --dismount outer_volume
 ```
 
 ### 5.3 What is plausible deniability?

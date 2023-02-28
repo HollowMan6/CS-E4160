@@ -113,6 +113,11 @@ Restart Apache2 and test the server from another machine using cadaver(1). You s
 ### 5.2 Demonstrate mounting a WebDAV resource into the local filesystem.
 
 ### 5.3 Does your implementation support versioning? If not, what should be added?
+In general, the built-in WebDAV module of Apache2 server platform does not support versioning out of the box.
+
+To enable versioning, you can use a third-party WebDAV server software that supports versioning or use a versioning file system like ZFS or Btrfs. Alternatively, you can configure a WebDAV server with a version control system like Subversion or Git.
+
+Another option is to use a WebDAV client with built-in versioning support, such as the WebDrive client. This allows you to interact with a WebDAV server and version control system through a single interface.
 
 ## 6. Raid 5
 In this task, you are going to establish a Network Attached Storage (NAS) system with lab1 as a server.   The server should use Raid for data integrity. Set up Raid 5 on the NAT server and create EXT4 filesystem on the array.
@@ -129,15 +134,15 @@ RAID5 is a type of RAID configuration that uses block-level striping and parity 
 ### 6.2 Show that your raid5 solution is working.
 To create a RAID5 array in Linux, we first need to install the mdadm package. Then we can create a RAID5 array using the following steps:
 
-Partition the disks that will be used in the array. For this task, we will use three virtual disks (/dev/sdb, /dev/sdc, and /dev/sdd).
+Partition the disks that will be used in the array. For this task, we will use three virtual disks (/dev/sdc, /dev/sdd, and /dev/sde).
 
 Use the mdadm command to create the RAID5 array:
 
 ```bash
-sudo mdadm --create --verbose /dev/md0 --level=5 --raid-devices=3 /dev/sdb1 /dev/sdc1 /dev/sdd1
+sudo mdadm --create --verbose /dev/md0 --level=5 --raid-devices=3 /dev/sdc /dev/sdd /dev/sde
 ```
 
-This command creates a RAID5 array with the name /dev/md0, using three disks (/dev/sdb1, /dev/sdc1, and /dev/sdd1).
+This command creates a RAID5 array with the name /dev/md0, using three disks (/dev/sdc, /dev/sdd, and /dev/sde).
 
 Once the array is created, we need to format it with a file system. We can use mkfs.ext4 to create an EXT4 file system on the array:
 

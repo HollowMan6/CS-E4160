@@ -2,6 +2,8 @@
 # vi: set ft=ruby :
 ENV["LC_ALL"] = "en_US.UTF-8"
 
+# VAGRANT_EXPERIMENTAL="disks"
+
 ## Documentation for VirtualBox-specific features:
 # https://www.vagrantup.com/docs/providers/virtualbox/networking
 # VirtualBox networking: https://www.virtualbox.org/manual/ch06.html
@@ -25,6 +27,9 @@ Vagrant.configure("2") do |config|
       vb.customize ["modifyvm", :id, "--groups", "/lab"]
       vb.customize ["modifyvm", :id, "--memory", "1024"]
       vb.customize ["modifyvm", :id, "--cpus", "14"]
+    end
+    (0..2).each do |i|
+      subconfig.vm.disk :disk, size: "1GB", name: "disk-#{i}"
     end
     # Add provisioning scripts
     subconfig.vm.provision "shell", inline: <<-SHELL
