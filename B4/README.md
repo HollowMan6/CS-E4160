@@ -189,8 +189,6 @@ Next, we need to restart the NFS server on lab1 to apply the changes:
 sudo systemctl restart nfs-kernel-server
 ```
 
-Finally, we can mount the NFS share on lab2 using the
-
 ## 7. Final question
 ### 7.1 Describe briefly a few use cases for samba, nfs, sshfs and WebDAV. Where, why, weaknesses?
 

@@ -51,6 +51,7 @@ sudo -u testuser1 mkdir /home/testuser1/mnt
 sudo -u testuser1 sshfs -o StrictHostKeyChecking=no lab1:/home/testuser1 /home/testuser1/mnt
 
 cadaver http://lab1/webdaver <<< "exit"
+sudo usermod -aG www-data davfs2
 sudo tee -a /etc/davfs2/davfs2.conf <<< "use_locks 1"
 sudo tee -a /etc/fstab << EOL
 http://lab1/webdaver /mnt/webdav davfs user,rw,noauto 0 0

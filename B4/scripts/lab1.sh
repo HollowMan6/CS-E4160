@@ -61,24 +61,30 @@ sudo a2enmod auth_digest
 sudo systemctl restart apache2
 sudo mkdir -p /var/www/WebDAV/files
 sudo chown -R www-data:vagrant /var/www/WebDAV
-sudo chmod -R 755 /var/www/WebDAV
+sudo chmod -R 775 /var/www/WebDAV
 sudo ln -s /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-enabled/
-# sudo htdigest -c /var/www/WebDAV/.htdigest your_auth_name testuser1
+# sudo htdigest -c /var/www/WebDAV/.htdigest testuser1 testuser1
 sudo tee -a /var/www/WebDAV/.htdigest <<EOL
-testuser1:your_auth_name:220d38838d8b39f8c238b6b649737537
+testuser1:testuser1:bbdd1b1fd4519613b08244ce22c97061
 EOL
 sudo chown www-data:root /var/www/WebDAV/.htdigest
 sudo chmod 640 /var/www/WebDAV/.htdigest
-sudo tee -a /etc/apache2/sites-available/000-default.conf <<EOL
-Alias /webdav /var/www/WebDAV/files
-<Location /webdav>
-    DAV On
-    AuthType Digest
-    AuthName "your_auth_name"
-    AuthUserFile /var/www/WebDAV/.htdigest
-    Require valid-user
-</Location>
-EOL
+sudo sed -i 's#</VirtualHost># \
+	Alias /webdav /var/www/WebDAV/files \
+	<Directory /var/www/WebDAV/files> \
+		DAV On \
+		Options Indexes FollowSymLinks \
+		AllowOverride None \
+		Require all granted \
+	</Directory> \
+	<Location /webdav> \
+		DAV On \
+		AuthType Digest \
+		AuthName "testuser1" \
+		AuthUserFile /var/www/WebDAV/.htdigest \
+		Require valid-user \
+	</Location> \
+</VirtualHost>#g' /etc/apache2/sites-available/000-default.conf
 sudo systemctl restart apache2
 
 sudo mdadm --create --verbose /dev/md0 --level=5 --raid-devices=3 /dev/sdc /dev/sdd /dev/sde
