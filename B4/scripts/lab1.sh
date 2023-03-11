@@ -56,6 +56,7 @@ sudo smbpasswd -a testuser1 -s << EOL
 EOL
 sudo smbpasswd -e testuser1
 
+sudo a2enmod dav
 sudo a2enmod dav_fs
 sudo a2enmod auth_digest
 sudo systemctl restart apache2
@@ -63,12 +64,12 @@ sudo mkdir -p /var/www/WebDAV/files
 sudo chown -R www-data:vagrant /var/www/WebDAV
 sudo chmod -R 775 /var/www/WebDAV
 sudo ln -s /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-enabled/
-# sudo htdigest -c /var/www/WebDAV/.htdigest testuser1 testuser1
-sudo tee -a /var/www/WebDAV/.htdigest <<EOL
-testuser1:testuser1:bbdd1b1fd4519613b08244ce22c97061
+# sudo htdigest -c /var/local/users.password testuser testuser
+sudo tee -a /var/local/users.password <<EOL
+testuser:testuser:61e38645d7ab62f04486e002bb7db499
 EOL
-sudo chown www-data:root /var/www/WebDAV/.htdigest
-sudo chmod 640 /var/www/WebDAV/.htdigest
+sudo chown www-data:root /var/local/users.password
+sudo chmod 640 /var/local/users.password
 sudo sed -i 's#</VirtualHost># \
 	Alias /webdav /var/www/WebDAV/files \
 	<Directory /var/www/WebDAV/files> \
@@ -80,8 +81,8 @@ sudo sed -i 's#</VirtualHost># \
 	<Location /webdav> \
 		DAV On \
 		AuthType Digest \
-		AuthName "testuser1" \
-		AuthUserFile /var/www/WebDAV/.htdigest \
+		AuthName "testuser" \
+		AuthUserFile /var/local/users.password \
 		Require valid-user \
 	</Location> \
 </VirtualHost>#g' /etc/apache2/sites-available/000-default.conf
@@ -92,7 +93,7 @@ sudo mkfs.ext4 /dev/md0
 sudo mkdir /mnt/raid5
 sudo mount /dev/md0 /mnt/raid5
 sudo mdadm --detail /dev/md0
-
+sudo chmod 777 /mnt/raid5/
 sudo tee -a /etc/exports <<EOL
 /mnt/raid5 *(rw,sync,no_subtree_check)
 EOL

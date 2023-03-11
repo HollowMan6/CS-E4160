@@ -49,17 +49,23 @@ sudo umount /mnt
 
 sudo -u testuser1 mkdir /home/testuser1/mnt
 sudo -u testuser1 sshfs -o StrictHostKeyChecking=no lab1:/home/testuser1 /home/testuser1/mnt
+# sudo -u testuser1 umount /home/testuser1/mnt
 
-cadaver http://lab1/webdaver <<< "exit"
-sudo usermod -aG www-data davfs2
-sudo tee -a /etc/davfs2/davfs2.conf <<< "use_locks 1"
-sudo tee -a /etc/fstab << EOL
-http://lab1/webdaver /mnt/webdav davfs user,rw,noauto 0 0
-EOL
-sudo mount /mnt/webdav
-sudo umount /mnt/webdav
+echo "test" > test.txt
+# cadaver http://lab1/webdav
+# testuser
+# 123456
+# put /home/vagrant/test.txt
+# exit
+
+## This will disable file locking, which is not supported by some WebDAV servers.
+sudo tee -a /etc/davfs2/davfs2.conf <<< "use_locks 0"
+sudo mkdir /mnt/webdav
+sudo mount -t davfs http://lab1/webdav /mnt/webdav -o username=testuser <<< "123456"
+# sudo umount /mnt/webdav
 
 sudo mkdir /mnt/raid5
 sudo mount -t nfs lab1:/mnt/raid5 /mnt/raid5
+cp ~/test.txt /mnt/raid5/test.txt
 # sudo umount /mnt/raid5
 

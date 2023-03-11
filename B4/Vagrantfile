@@ -2,7 +2,8 @@
 # vi: set ft=ruby :
 ENV["LC_ALL"] = "en_US.UTF-8"
 
-# VAGRANT_EXPERIMENTAL="disks"
+## Start with:
+# VAGRANT_EXPERIMENTAL="disks" vagrant up
 
 ## Documentation for VirtualBox-specific features:
 # https://www.vagrantup.com/docs/providers/virtualbox/networking
