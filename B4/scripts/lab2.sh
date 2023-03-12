@@ -49,6 +49,7 @@ sudo umount /mnt
 
 sudo -u testuser1 mkdir /home/testuser1/mnt
 sudo -u testuser1 sshfs -o StrictHostKeyChecking=no lab1:/home/testuser1 /home/testuser1/mnt
+# sudo -u testuser1 fusermount -u /home/testuser1/mnt
 # sudo -u testuser1 umount /home/testuser1/mnt
 
 echo "test" > test.txt

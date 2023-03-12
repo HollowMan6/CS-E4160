@@ -43,6 +43,19 @@ Stacked filesystem encryption encrypts individual files or directories within a 
 
 In stacked filesystem encryption, each file or directory has its own encryption key, whereas in block device encryption, the entire block device is encrypted with a single key.
 
+Stacked file system encryption and block device encryption are both techniques used to encrypt data on a storage device, but they differ in several ways:
+
+- Encryption Scope: Stacked file system encryption operates at the file system level, whereas block device encryption operates at the block device level. Stacked file system encryption encrypts individual files and directories on the file system, while block device encryption encrypts the entire block device.
+
+- Encryption Location: Stacked file system encryption encrypts data on a file-by-file basis as it is written to and read from the file system, whereas block device encryption encrypts data as it is written to and read from the physical blocks on the storage device.
+
+- Encryption Overhead: Stacked file system encryption has higher encryption overhead than block device encryption. This is because stacked file system encryption requires each file to be individually encrypted and decrypted, while block device encryption encrypts and decrypts data in larger chunks.
+
+- Encryption Flexibility: Stacked file system encryption allows for more flexible encryption options, such as encrypting only certain files or directories, while block device encryption provides a more secure, comprehensive encryption solution for the entire storage device.
+
+- Encryption Compatibility: Stacked file system encryption may be more compatible with existing file systems, whereas block device encryption requires a specific block device encryption format that may not be compatible with all file systems.
+
+In summary, stacked file system encryption and block device encryption differ in the scope and location of encryption, encryption overhead, encryption flexibility, and encryption compatibility. Each approach has its own strengths and weaknesses, and the choice between them depends on the specific requirements and use case.
 ### 2.2 Provide the commands you used for creating and verifying the keys and explain what they do.
 
 To generate a GPG keypair with RSA algorithm and 2048 bit keys, the following command can be used:
@@ -101,6 +114,11 @@ Using GPG like this can be secure if the keys are properly generated, stored, an
 - Key compromise: If a private key is compromised, an attacker can decrypt and access the encrypted data.
 - Key exchange: If the public key is exchanged over an insecure channel, it can be intercepted and replaced with a malicious key.
 - Malware: If malware is present on either lab1 or lab2, it can intercept the plaintext or the encrypted file before or after encryption or decryption.
+- Weak Passphrases: If the passphrase used to encrypt a GPG key is weak, it may be vulnerable to brute-force attacks. It is important to choose a strong passphrase that is difficult to guess and contains a mix of upper and lowercase letters, numbers, and special characters.
+- Key Management: If GPG keys are not stored securely, they may be vulnerable to theft or compromise. It is important to store GPG keys in a secure location, such as an encrypted file or hardware security module, and to use best practices for key management, such as revoking and regenerating keys as needed.
+- Key Verification: If GPG keys are not properly verified, there is a risk of impersonation or man-in-the-middle attacks. It is important to verify the authenticity of GPG keys before using them to encrypt or sign data, and to use trusted sources for key verification.
+- Software Vulnerabilities: Like any software, GPG may have vulnerabilities that can be exploited by attackers. It is important to keep GPG up-to-date with the latest security patches and to use a trusted distribution of GPG.
+- Social Engineering: GPG relies on the user to make decisions about key verification and passphrase protection. If an attacker is able to trick the user into revealing their passphrase or trusting a compromised key, the security of the system may be compromised.
 
 ### 2.4 How does GPG relate to PGP?
 GPG is a free and open-source implementation of the OpenPGP standard, which is a protocol for secure communication based on PGP (Pretty Good Privacy). PGP was created by Phil Zimmermann in 1991 as a proprietary encryption software, but it was later released as an open standard. GPG is compatible with PGP and can interoperate with other OpenPGP-compliant software.
@@ -151,7 +169,7 @@ sudo mount /dev/mapper/loopfs /mnt/loopfs
 ```
 
 ### 3.2 Explain the concepts of the pseudo-device and loopback device.
-A loopback device is a special type of device that allows a file to be treated as if it were a block device. This means that a filesystem can be created within a file and mounted as if it were a separate disk partition.
+A loopback device is a special type of device that allows a file to be treated as if it were a block device. This means that a filesystem can be created within a file and mounted as if it were a separate disk partition. It is a virtual network interface that allows a computer to communicate with itself over a network protocol. A loopback device is often used for testing network applications or for running a web server on a local machine. The loopback device is assigned an IP address, typically 127.0.0.1, that is used to refer to the local machine. When a network application sends data to the loopback address, the data is sent directly to the loopback device, which then processes the data as if it had been received over a physical network interface.
 
 A pseudo-device is a device that exists only in software, not in hardware. It is created by the device mapper (dm), which is a framework for creating virtual block devices out of other block devices. The device mapper takes a block device (such as a loopback device) and maps it to a new block device with additional features, such as encryption or RAID.
 
@@ -163,16 +181,40 @@ LUKS (Linux Unified Key Setup) is a disk encryption specification that provides 
 LUKS supports various encryption algorithms and key sizes, as well as the ability to use multiple keys for a single encrypted volume. It also includes features such as key slot management and passphrase quality checking.
 
 ### 3.4 What is this kind of encryption method (creating a filesystem into a large random file, and storing a password protected decryption key with it) good for? What strengths and weaknesses does it have?
-This kind of encryption method is good for creating an encrypted filesystem that can be easily moved or copied as a single file. It can be used for securely storing sensitive data on a system without requiring a separate physical disk partition or device.
+The encryption method you are describing is known as a container-based encryption or file-based encryption. This technique involves creating a virtual encrypted container, which is essentially a large file that acts as a filesystem. The container is encrypted with a password, and all data stored within the container is also encrypted.
 
-One strength of this method is that it provides encryption of the entire filesystem, including filenames and directory structures. It also allows the filesystem to be easily backed up or moved without the need to separately encrypt individual files or directories.
+One of the main advantages of container-based encryption is that it provides an additional layer of security for sensitive data. By storing data within an encrypted container, even if an attacker gains access to the underlying file system or storage device, they will not be able to access the encrypted data without the password. This technique is commonly used for encrypting sensitive files, such as financial records or personal documents, that need to be stored on a local storage device.
 
-However, this method has some weaknesses. One is that it requires the entire filesystem to be decrypted and mounted in order to access any of the data, which can be slow and inefficient for large filesystems. Additionally, if the encryption key is compromised, all data on the encrypted filesystem can be accessed by an attacker.
+Another advantage of container-based encryption is its ease of use. Once the encrypted container is created and mounted, the user can access and modify the files within it just as they would with a regular filesystem. This makes it a convenient way to store sensitive data without having to use more complex encryption techniques or specialized software.
+
+However, there are also some potential weaknesses to container-based encryption that should be considered. For example:
+
+- Single point of failure: The container file itself is the only point of protection for the data stored within it. If the container file is lost or corrupted, the data stored within it may be permanently lost.
+
+- Password security: The strength of the encryption depends on the strength of the password used to encrypt the container. If the password is weak or easily guessable, the container can be easily compromised.
+
+- Limited scalability: Container-based encryption is not as scalable as other encryption techniques such as full-disk encryption. It may be difficult to encrypt large amounts of data using container-based encryption, as the size of the container file may become unmanageable.
+
+- Performance: Accessing files within an encrypted container can be slower than accessing unencrypted files, as each file must be decrypted on-the-fly as it is accessed.
+
+In summary, container-based encryption is a useful technique for encrypting sensitive files, providing an additional layer of security and ease of use. However, it also has some potential weaknesses, including single-point-of-failure, password security, limited scalability, and potential performance issues. It is important to evaluate these factors and determine whether container-based encryption is the best choice for a particular use case.
 
 ### 3.5 Why did we remove cryptoloop from the assignment and replaced it with dm_crypt? Extending the question a bit, what realities must a sysadmin remember with any to-be-deployed and already deployed security-related software?
-Cryptoloop was an older encryption module in Linux that was replaced by dm-crypt, which is a more modern and secure encryption module that is now the preferred method for creating encrypted filesystems in Linux.
+Cryptoloop was a legacy encryption module in the Linux kernel that used a deprecated cryptographic algorithm, which made it vulnerable to some attacks. Because of this, it has been removed from newer versions of the Linux kernel in favor of more modern encryption modules like dm-crypt, which use more secure encryption algorithms.
 
-As for the second part of the question, a sysadmin must remember that any security-related software must be regularly updated to address any known security vulnerabilities. They must also ensure that any new software they deploy is properly configured and secured, and that any security-related settings are properly maintained. Additionally, they must regularly monitor their systems for any signs of intrusion or unauthorized access and take appropriate action if any issues are detected. Finally, they must also keep up to date with the latest developments in the field of cybersecurity and adapt their security measures accordingly to ensure the ongoing protection of their systems and data.
+Dm-crypt, on the other hand, is a widely-used disk encryption module in Linux that uses the Advanced Encryption Standard (AES) algorithm, which is considered to be secure and robust. It also provides better performance and scalability compared to cryptoloop, making it a better choice for modern systems.
+
+In general, a sysadmin must keep in mind several realities when deploying and maintaining security-related software:
+
+- Security vulnerabilities: No software is completely secure, and new vulnerabilities can be discovered at any time. A sysadmin should stay up-to-date with the latest security news and patches, and regularly audit their systems for potential vulnerabilities.
+
+- Compatibility: Security software can sometimes conflict with other software or system components, or may not be compatible with certain hardware configurations. A sysadmin should carefully test and evaluate new security software before deploying it in a production environment.
+
+- Performance: Security software can sometimes impact system performance, especially when it involves heavy encryption or decryption operations. A sysadmin should carefully monitor system performance and adjust settings as necessary to maintain optimal performance.
+
+- User training: Security software often involves additional steps or processes that end-users must follow to properly secure their data or access system resources. A sysadmin should provide adequate training and support to users to ensure that they are using security software correctly and effectively.
+
+- Legal and regulatory compliance: Depending on the industry and jurisdiction, certain security-related software or configurations may be required by law or regulation. A sysadmin should be aware of these requirements and ensure that their systems are compliant.
 
 ## 4. Gocryptfs
 Using gocryptfs, mount an encrypted filesystem on a directory of your choice. This gives you the encryption layer. After this, create a few directories, and some files in them. Unmount gocryptfs using Fuse's fusermount.
@@ -213,13 +255,19 @@ fusermount -u ~/encrypted
 ```
 
 ### 4.2 Explain how this approach differs from the loopback one. What are the main differences between gocryptfs and encFS? Is encFS secure?
-The main difference between gocryptfs and the loopback encryption approach is that gocryptfs is a userspace encrypted file system, whereas the loopback encryption approach involves using a file as a block device and then creating a file system on that device. In other words, gocryptfs provides encryption at the file system level, while the loopback approach provides encryption at the block device level.
+The approach of using gocryptfs differs from the loopback approach in several ways:
 
-Gocryptfs is designed to be more secure than encFS, which is another popular userspace encrypted file system. Gocryptfs uses a stronger encryption algorithm (AES-256) and provides better protection against tampering attacks, such as chosen ciphertext attacks. Additionally, gocryptfs does not rely on external libraries, which reduces the attack surface.
+- Encryption granularity: With loopback encryption, the entire file system is encrypted as a single unit. With gocryptfs, individual files are encrypted and decrypted on-the-fly as they are accessed.
+- Encryption algorithm: Gocryptfs uses a more modern and secure encryption algorithm (AES-256 in GCM mode) compared to the older and less secure encryption algorithm used by loopback encryption.
+- Authentication: Gocryptfs uses a stronger and more secure password-based key derivation function (Argon2) to derive the encryption key from the user's password.
 
-On the other hand, encFS has been criticized for its security vulnerabilities, such as the "IV reuse" vulnerability and the "reverse engineering" vulnerability. As a result, encFS is generally considered to be less secure than gocryptfs.
+The main differences between gocryptfs and encFS are:
 
-In summary, gocryptfs is a more secure and reliable encrypted file system compared to encFS, and is recommended for use in sensitive applications where security is a top priority.
+- Encryption algorithm: Gocryptfs uses AES-256 in GCM mode, which is considered to be more secure and faster than the encryption algorithm used by encFS (which is based on a combination of AES-CBC and Ecb).
+- Security features: Gocryptfs includes several security features that are not present in encFS, such as plausibly deniable encryption, the ability to use a hidden encryption key, and stronger key derivation functions.
+- Performance: Gocryptfs is generally faster than encFS, especially when dealing with large files or many small files.
+
+As for the security of encFS, it is generally considered to be less secure than some other encryption tools due to some potential vulnerabilities, such as the possibility of data leakage through temporary files, weak key derivation functions, and other security issues. While encFS may be sufficient for some use cases, it may not be suitable for highly sensitive data or high-security environments. It is important to evaluate the specific security needs of a given use case and carefully weigh the risks and benefits of different encryption tools before selecting one.
 
 ## 5. TrueCrypt and alternatives
 On this course we used to have a TrueCrypt assignment where students were required to create a hidden volume inside another volume. However, since 2014 there has been a lot of discussion about the security of TrueCrypt. Read arguments against and for TrueCrypt and based on your knowledge of the subject make a choice to use either TrueCrypt or one of the alternative forks that can create hidden volumes. Using the software of your choice create a hidden volume within an encrypted volume.

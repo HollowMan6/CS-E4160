@@ -47,7 +47,7 @@ Make sure you have samba installed on lab1. Share /home with read and write perm
 
 The problem with only allowing root to use mount is that regular users will not be able to mount network filesystems on their own, including their remote home directories. This can be inconvenient and limit their ability to access and work with their files.
 
-However, there is a workaround for this problem. One way is to add an entry to the /etc/fstab file that specifies the network filesystem and its mount point. This will allow the network filesystem to be mounted at boot time by the system, with the proper permissions for the specified user. Another way is to use the mount command with the suid bit set, which allows users to mount network filesystems as themselves instead of root. However, this method may introduce security risks and is generally not recommended.
+However, there is a workaround for this problem. One way is to add an entry to the /etc/fstab file that specifies the network filesystem and its mount point. This will allow the network filesystem to be mounted at boot time by the system, with the proper permissions for the specified user. Another way is to use the mount command with the suid bit set, which allows users to mount network filesystems as themselves instead of root. However, this method may introduce security risks and is generally not recommended. A third way is to use the "-o" to specify the user and group that should be used to mount the filesystem.
 
 ## 4. Configuring and testing sshfs
 sshfs is filesystem for FUSE (filesystem in userspace).
@@ -64,7 +64,7 @@ sshfs testuser1@lab1:/home/testuser1 /home/testuser1/mnt
 ```
 
 ### 4.2 When is sshfs a good solution?
-sshfs can be a good solution when you need to securely access files on a remote server over a network. It uses encryption to protect data during transmission, making it more secure than some other network filesystems. It also provides a familiar interface for users, as files on the remote server can be accessed and manipulated through a regular file system interface.
+sshfs can be a good solution when you need to securely access files on a remote server over a network (You already have a ssh setup). It uses encryption to protect data during transmission, making it more secure than some other network filesystems. It also provides a familiar interface for users, as files on the remote server can be accessed and manipulated through a regular file system interface. It also provides a way to access files on a remote server as a normal user on the local system.
 
 ### 4.3 What are the advantages of FUSE?
 FUSE (Filesystem in Userspace) provides a way for filesystems to be implemented entirely in user space rather than in the kernel. This has several advantages:
@@ -115,7 +115,11 @@ Restart Apache2 and test the server from another machine using cadaver(1). You s
 ### 5.3 Does your implementation support versioning? If not, what should be added?
 In general, the built-in WebDAV module of Apache2 server platform does not support versioning out of the box.
 
-To enable versioning, you can use a third-party WebDAV server software that supports versioning or use a versioning file system like ZFS or Btrfs. Alternatively, you can configure a WebDAV server with a version control system like Subversion or Git.
+http://www.webdav.org/specs/rfc3253.html
+
+https://www.webdavsystem.com/server/documentation/creating_deltav/
+
+To enable versioning, you can use a third-party WebDAV server software such as DeltaV that supports versioning or use a versioning file system like ZFS or Btrfs. Alternatively, you can configure a WebDAV server with a version control system like Subversion or Git.
 
 Another option is to use a WebDAV client with built-in versioning support, such as the WebDrive client. This allows you to interact with a WebDAV server and version control system through a single interface.
 

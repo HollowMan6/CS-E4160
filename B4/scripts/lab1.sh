@@ -44,10 +44,10 @@ sudo -u testuser1 tee /home/testuser1/test.txt <<< "Hello world"
 sudo tee -a /etc/samba/smb.conf <<EOL
 [homes]
    comment = Home Directories
-   browseable = no
+   browseable = yes
    read only = no
-   create mask = 0755
-   directory mask = 0755
+   create mask = 0775
+   directory mask = 0775
 EOL
 sudo systemctl reload smbd.service
 sudo smbpasswd -a testuser1 -s << EOL
@@ -98,3 +98,8 @@ sudo tee -a /etc/exports <<EOL
 /mnt/raid5 *(rw,sync,no_subtree_check)
 EOL
 sudo systemctl restart nfs-kernel-server
+
+# sudo mdadm --fail /dev/md0 /dev/sdc
+# cat /proc/mdstat
+# sudo mdadm --remove /dev/md0 /dev/sdc
+# sudo mdadm --add /dev/md0 /dev/sdf
