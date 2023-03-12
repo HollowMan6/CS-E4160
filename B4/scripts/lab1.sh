@@ -63,13 +63,13 @@ sudo systemctl restart apache2
 sudo mkdir -p /var/www/WebDAV/files
 sudo chown -R www-data:vagrant /var/www/WebDAV
 sudo chmod -R 775 /var/www/WebDAV
-sudo ln -s /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-enabled/
-# sudo htdigest -c /var/local/users.password testuser testuser
-sudo tee -a /var/local/users.password <<EOL
+# sudo ln -s /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-enabled/
+# sudo htdigest -c /var/www/WebDAV/.htdigest testuser testuser
+sudo tee -a /var/www/WebDAV/.htdigest <<EOL
 testuser:testuser:61e38645d7ab62f04486e002bb7db499
 EOL
-sudo chown www-data:root /var/local/users.password
-sudo chmod 640 /var/local/users.password
+sudo chown www-data:root /var/www/WebDAV/.htdigest
+sudo chmod 640 /var/www/WebDAV/.htdigest
 sudo sed -i 's#</VirtualHost># \
 	Alias /webdav /var/www/WebDAV/files \
 	<Directory /var/www/WebDAV/files> \
@@ -82,7 +82,7 @@ sudo sed -i 's#</VirtualHost># \
 		DAV On \
 		AuthType Digest \
 		AuthName "testuser" \
-		AuthUserFile /var/local/users.password \
+		AuthUserFile /var/www/WebDAV/.htdigest \
 		Require valid-user \
 	</Location> \
 </VirtualHost>#g' /etc/apache2/sites-available/000-default.conf
