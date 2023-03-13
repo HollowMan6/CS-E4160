@@ -109,6 +109,21 @@ Enable the auth_digest module for apache. Create a password file for a testuser 
 Restart Apache2 and test the server from another machine using cadaver(1). You should reach the server http://lab1/webdav .
 
 ### 5.1 Demonstrate a working setup. (View for example a web page on one machine and edit it from another using cadaver).
+"Options Indexes FollowSymLinks" is a configuration directive used in Apache HTTP server's configuration files to define the options for a specific directory or location.
+
+The "Indexes" option specifies that if a client requests a directory that does not have an index file (like index.html or index.php), then a listing of the contents of that directory will be displayed in the browser. This option enables the generation of a directory index, which is useful when there are no index files in the directory.
+
+The "FollowSymLinks" option instructs the server to follow symbolic links. Symbolic links are files that act as pointers to other files or directories, and they are commonly used to create shortcuts or aliases. With this option enabled, if a client requests a symbolic link, Apache will follow the link and return the contents of the file or directory pointed to by the link.
+
+"Authtype" typically refers to the type of authentication used to verify the identity of a user or entity attempting to access a system, network, or application.
+
+There are various types of authentication mechanisms available, such as:
+
+- Basic authentication: where a username and password are sent in plain text to authenticate the user.
+- Digest authentication: where a hash value of the username, password, and other information is sent to authenticate the user.
+- Token-based authentication: where a token or key is used to authenticate the user.
+- Multi-factor authentication: where more than one method of authentication is used, such as a combination of a password, a security token, or biometric data like a fingerprint or facial recognition.
+The Authtype is usually specified as a part of the configuration or settings for the authentication process.
 
 ### 5.2 Demonstrate mounting a WebDAV resource into the local filesystem.
 
@@ -136,6 +151,8 @@ Parity is a method used in RAID technology to ensure data redundancy. It is a ma
 RAID5 is a type of RAID configuration that uses block-level striping and parity data across three or more hard drives. In a RAID5 array, data is written across all the disks in the array, along with an additional parity block. This parity block is used to calculate the contents of any missing block if one of the disks fails. RAID5 provides fault tolerance and data redundancy with the smallest amount of overhead (only one disk’s worth of space is used for parity information).
 
 ### 6.2 Show that your raid5 solution is working.
+lsblk
+
 To create a RAID5 array in Linux, we first need to install the mdadm package. Then we can create a RAID5 array using the following steps:
 
 Partition the disks that will be used in the array. For this task, we will use three virtual disks (/dev/sdc, /dev/sdd, and /dev/sde).

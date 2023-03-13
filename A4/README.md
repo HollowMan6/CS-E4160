@@ -38,6 +38,9 @@ Create a plaintext file with some text in it on lab1. Encrypt the file using lab
 Finally, sign a plaintext file on lab2, send the file with its signature to lab1. Verify on lab1 that it really was the lab2 user that signed the message.
 
 ### 2.1 What are the differences between stacked file system encryption and Block device encryption?
+Stacked file system encryption is a method of encrypting individual files or directories within a file system. This technique involves adding a layer of encryption to an existing file system, such as encrypting a home directory on a Linux system. Stacked file system encryption can be useful for protecting sensitive data on a shared system or for encrypting data on a per-user basis.
+
+Block device encryption, on the other hand, involves encrypting an entire storage device, such as a hard drive or USB flash drive, at the block level. This technique encrypts all data on the device, including the file system, and requires a decryption key to access the data. Block device encryption is often used to protect data on portable devices that could be lost or stolen.
 
 Stacked filesystem encryption encrypts individual files or directories within a filesystem, while block device encryption encrypts the entire block device. In stacked filesystem encryption, the encryption is transparent to the applications that access the files and directories, whereas in block device encryption, the encryption is transparent to the operating system that manages the block device.
 
@@ -110,10 +113,6 @@ This command verifies the signature of the file plaintext_file.txt.gpg using the
 ### 2.3 Are there any security problems in using GPG like this?
 Using GPG like this can be secure if the keys are properly generated, stored, and exchanged between trusted parties. However, there are several security problems that can arise, such as:
 
-- Weak key generation: If the keypair is generated with weak parameters, it can be vulnerable to attacks.
-- Key compromise: If a private key is compromised, an attacker can decrypt and access the encrypted data.
-- Key exchange: If the public key is exchanged over an insecure channel, it can be intercepted and replaced with a malicious key.
-- Malware: If malware is present on either lab1 or lab2, it can intercept the plaintext or the encrypted file before or after encryption or decryption.
 - Weak Passphrases: If the passphrase used to encrypt a GPG key is weak, it may be vulnerable to brute-force attacks. It is important to choose a strong passphrase that is difficult to guess and contains a mix of upper and lowercase letters, numbers, and special characters.
 - Key Management: If GPG keys are not stored securely, they may be vulnerable to theft or compromise. It is important to store GPG keys in a secure location, such as an encrypted file or hardware security module, and to use best practices for key management, such as revoking and regenerating keys as needed.
 - Key Verification: If GPG keys are not properly verified, there is a risk of impersonation or man-in-the-middle attacks. It is important to verify the authenticity of GPG keys before using them to encrypt or sign data, and to use trusted sources for key verification.
@@ -181,7 +180,7 @@ LUKS (Linux Unified Key Setup) is a disk encryption specification that provides 
 LUKS supports various encryption algorithms and key sizes, as well as the ability to use multiple keys for a single encrypted volume. It also includes features such as key slot management and passphrase quality checking.
 
 ### 3.4 What is this kind of encryption method (creating a filesystem into a large random file, and storing a password protected decryption key with it) good for? What strengths and weaknesses does it have?
-The encryption method you are describing is known as a container-based encryption or file-based encryption. This technique involves creating a virtual encrypted container, which is essentially a large file that acts as a filesystem. The container is encrypted with a password, and all data stored within the container is also encrypted.
+This encryption method is known as a container-based encryption or file-based encryption. This technique involves creating a virtual encrypted container, which is essentially a large file that acts as a filesystem. The container is encrypted with a password, and all data stored within the container is also encrypted.
 
 One of the main advantages of container-based encryption is that it provides an additional layer of security for sensitive data. By storing data within an encrypted container, even if an attacker gains access to the underlying file system or storage device, they will not be able to access the encrypted data without the password. This technique is commonly used for encrypting sensitive files, such as financial records or personal documents, that need to be stored on a local storage device.
 
@@ -190,16 +189,15 @@ Another advantage of container-based encryption is its ease of use. Once the enc
 However, there are also some potential weaknesses to container-based encryption that should be considered. For example:
 
 - Single point of failure: The container file itself is the only point of protection for the data stored within it. If the container file is lost or corrupted, the data stored within it may be permanently lost.
-
 - Password security: The strength of the encryption depends on the strength of the password used to encrypt the container. If the password is weak or easily guessable, the container can be easily compromised.
-
 - Limited scalability: Container-based encryption is not as scalable as other encryption techniques such as full-disk encryption. It may be difficult to encrypt large amounts of data using container-based encryption, as the size of the container file may become unmanageable.
-
 - Performance: Accessing files within an encrypted container can be slower than accessing unencrypted files, as each file must be decrypted on-the-fly as it is accessed.
 
 In summary, container-based encryption is a useful technique for encrypting sensitive files, providing an additional layer of security and ease of use. However, it also has some potential weaknesses, including single-point-of-failure, password security, limited scalability, and potential performance issues. It is important to evaluate these factors and determine whether container-based encryption is the best choice for a particular use case.
 
 ### 3.5 Why did we remove cryptoloop from the assignment and replaced it with dm_crypt? Extending the question a bit, what realities must a sysadmin remember with any to-be-deployed and already deployed security-related software?
+https://en.wikipedia.org/wiki/Cryptoloop
+
 Cryptoloop was a legacy encryption module in the Linux kernel that used a deprecated cryptographic algorithm, which made it vulnerable to some attacks. Because of this, it has been removed from newer versions of the Linux kernel in favor of more modern encryption modules like dm-crypt, which use more secure encryption algorithms.
 
 Dm-crypt, on the other hand, is a widely-used disk encryption module in Linux that uses the Advanced Encryption Standard (AES) algorithm, which is considered to be secure and robust. It also provides better performance and scalability compared to cryptoloop, making it a better choice for modern systems.
@@ -207,13 +205,9 @@ Dm-crypt, on the other hand, is a widely-used disk encryption module in Linux th
 In general, a sysadmin must keep in mind several realities when deploying and maintaining security-related software:
 
 - Security vulnerabilities: No software is completely secure, and new vulnerabilities can be discovered at any time. A sysadmin should stay up-to-date with the latest security news and patches, and regularly audit their systems for potential vulnerabilities.
-
 - Compatibility: Security software can sometimes conflict with other software or system components, or may not be compatible with certain hardware configurations. A sysadmin should carefully test and evaluate new security software before deploying it in a production environment.
-
 - Performance: Security software can sometimes impact system performance, especially when it involves heavy encryption or decryption operations. A sysadmin should carefully monitor system performance and adjust settings as necessary to maintain optimal performance.
-
 - User training: Security software often involves additional steps or processes that end-users must follow to properly secure their data or access system resources. A sysadmin should provide adequate training and support to users to ensure that they are using security software correctly and effectively.
-
 - Legal and regulatory compliance: Depending on the industry and jurisdiction, certain security-related software or configurations may be required by law or regulation. A sysadmin should be aware of these requirements and ensure that their systems are compliant.
 
 ## 4. Gocryptfs
@@ -285,6 +279,8 @@ I chose to use VeraCrypt because it is a widely used open-source software forked
 
 ### 5.2 Provide the commands that you used to create the volumes. Demonstrate that you can mount the outer and the hidden volume.
 https://documentation.help/VeraCrypt/Personal%20Iterations%20Multiplier%20(PIM).html
+
+PIM stands for "Personal Iterations Multiplier". It is a parameter that was introduced in VeraCrypt 1.12 and whose value controls the number of iterations used by the header key derivation function. This value can be specified through the password dialog or in the command line.
 
 Create the keyfiles:
 ```bash
