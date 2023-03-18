@@ -6,7 +6,7 @@ metadata:
     app: sa-frontend
 spec:
   containers:
-    - image: rinormaloku/sentiment-analysis-frontend 
+    - image: hollowman6/sa-frontend:minikube
       name: sa-frontend
       ports:
         - containerPort: 80

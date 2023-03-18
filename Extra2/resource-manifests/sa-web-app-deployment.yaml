@@ -1,10 +1,13 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sa-web-app
 spec:
   replicas: 2
   minReadySeconds: 15
+  selector:
+    matchLabels:
+      app: sa-web-app
   strategy:
     type: RollingUpdate
     rollingUpdate: 
@@ -16,7 +19,7 @@ spec:
         app: sa-web-app
     spec:
       containers:
-      - image: rinormaloku/sentiment-analysis-web-app
+      - image: hollowman6/sa-webapp
         imagePullPolicy: Always
         name: sa-web-app
         env:

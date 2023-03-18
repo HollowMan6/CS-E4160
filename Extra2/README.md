@@ -10,10 +10,19 @@ You can download the files needed for the assignment at: https://version.aalto.f
 Then, install Docker and create a user to Docker Hub. This is necessary because you will be building and pushing images there.
 
 ### 1.1 Show your Docker Hub for this assignment’s containers.
-
+https://hub.docker.com/u/hollowman6
 
 ### 1.2 How can you use one Docker repository to hold multiple containers?
+We can use tags to differentiate multiple containers in a single Docker repository. Each container image can be tagged with a unique identifier, and when you push the image to Docker Hub, you can specify the tag name to distinguish it from other containers in the same repository. For example, you can have a repository called "myrepo" and push two different images with tags "myimage1" and "myimage2" respectively, using the following commands:
 
+```bash
+docker build -t myrepo:myimage1 .
+docker push myrepo:myimage1
+
+docker build -t myrepo:myimage2 .
+docker push myrepo:myimage2
+```
+This will allow you to manage multiple container images in a single Docker repository.
 
 ## 2. Docker
 You will host three services on different Docker containers: a react webpage, which is the frontend of the website; a spring web application, which contacts a python application and returns the results in json format; and a python application containing the website logic. Due to this architecture, you will need to build the website in reverse order, as the spring application will need to know the IP address of the Python application, and the webpage will need to know the Spring application’s IP. To test out the Docker installation however, you will first build the frontend of the website. Then build the other services and change the webpage to point to the right address.
@@ -28,29 +37,38 @@ Hint: use commands “docker build” and “docker push”
 5. Now you need to change the sa-frontend/src/App.js -file to fetch data from the webapp container. Edit the analyzeSentence() -function. Before building the Docker image, you will need to build the webpage again. Afterwards, build the Docker image, push it to your hub and run the application.
 6. The website should now work on your browser. Go to http://localhost:3000 and type a phrase to see the sentiment you get. If the website doesn’t work, try clearing your browser cache of any previous versions it may have stored.
 
-2.1
+### 2.1 List the commands you used for building, pushing and running the containers
+```bash
+cd sa-frontend
+npm install
+npm run build
+docker build -t hollowman6/sa-frontend .
+docker push hollowman6/sa-frontend
+docker run -p 3000:80 --name sa-frontend hollowman6/sa-frontend
+cd ../sa-logic
+docker build -t hollowman6/sa-logic .
+docker push hollowman6/sa-logic
+docker run -p 5050:5000 --name sa-logic hollowman6/sa-logic
+cd ../sa-webapp
+mvn install
+docker build -t hollowman6/sa-webapp .
+docker push hollowman6/sa-webapp
+docker run -p 8080:8080 --name sa-webapp hollowman6/sa-webapp
+docker network create sa-network
+docker network connect sa-network sa-logic
+docker network connect sa-network sa-webapp
+```
+### 2.2 Show the IP of one of the running containers
+```bash
+$ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}; {{end}}' sa-logic
+172.17.0.2; 172.18.0.2;
+$ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}; {{end}}' sa-webapp
+172.17.0.3; 172.18.0.3;
+```
+### 2.3 Demonstrate that the website is running and functional
 
-List the commands you used for building, pushing and running the containers
 
-2p
-
-2.2
-
-Show the IP of one of the running containers
-
-1p
-
-2.3
-
-Demonstrate that the website is running and functional
-
-3p
-
-2.4
-
-Explain your changes to the Dockerfiles
-
-2p
+### 2.4 Explain your changes to the Dockerfiles
 
 
 ## 3. Kubernetes
@@ -66,13 +84,43 @@ Now you will add scalability to your service by using load balancers and deploym
 8. Note that you must change the frontend App.js to point to the right address again. Use the IP of the webapp load balancer. You can get it by using “minikube service list”. After making the changes, use npm to build the webpage, build the docker image, and upload it to Docker Hub. Then reapply the deployment. The website should now be accessible and working through the frontend load balancer service.
 
 ## 3.1 List the commands you used for running the services, pods and deployments
-
+```bash
+minikube start
+cd resource-manifests
+kubectl apply -f sa-frontend-pod.yaml
+sudo -E minikube kubectl -- port-forward pod/sa-frontend 88:80
+kubectl apply -f sa-frontend-pod2.yaml
+kubectl apply -f service-sa-frontend-lb.yaml
+kubectl get svc
+kubectl apply -f sa-frontend-deployment.yaml
+kubectl delete po sa-frontend sa-frontend2
+kubectl apply -f sa-logic-deployment.yaml
+kubectl apply -f sa-web-app-deployment.yaml
+kubectl apply -f service-sa-logic.yaml
+kubectl apply -f service-sa-web-app-lb.yaml
+```
 
 ## 3.2 Demonstrate the website is running by connecting to the frontend load balancer. How does this differ from connecting to one of the pods?
 
+```bash
+minikube tunnel
+```
+
+This differs from connecting to one of the pods directly because the load balancer distributes traffic across multiple pods, while connecting to a single pod only serves traffic to that specific pod.
 
 ## 3.3 Explain the contents of sa-frontend-deployment.yaml, including what changes you made
+The sa-frontend-deployment.yaml file specifies a Kubernetes deployment for the frontend service. It creates a replica set of frontend pods and manages their lifecycle, ensuring that the desired number of replicas are always running.
 
+- kind: Specifies the kind of object to be created. Here, it is a deployment object.
+- replicas: Specifies the number of replicas that should be created for this deployment. In this case, it is set to 2.
+- strategy: Specifies the deployment strategy used when updating the deployment. The type field is set to "RollingUpdate" to ensure that there is a smooth transition between different versions of the deployment.
+- maxUnavailable: Specifies the maximum number of pods that can be unavailable during a rolling update. In this case, it is set to 1, which means that only one pod is taken down at a time during the update.
+- maxSurge: Specifies the maximum number of pods that can be created above the desired number of pods during a rolling update. In this case, it is set to 1, which means that only one new pod can be created at a time during the update.
+- labels: Labels are used to identify objects in Kubernetes. Here, it specifies the labels that should be attached to the pods created by this deployment. This is used by the selector field to identify which pods should be controlled by this deployment.
+- image: Specifies the Docker image to be used for this deployment's container. In this case, it is hollowman6/sa-frontend:minikube.
+- imagePullPolicy: Specifies when the Kubernetes should attempt to pull the image. Here, it is set to "Always" to ensure that the latest version of the image is used.
+- name: Specifies the name of the container that will be created.
+- ports: Specifies the port that the container will listen on. Here, it is set to 80, which is the default port for web traffic.
 
 ## 3.4 How can you scale a deployment after it has been deployed?
-
+kubectl scale deploy sa-frontend --replicas=3

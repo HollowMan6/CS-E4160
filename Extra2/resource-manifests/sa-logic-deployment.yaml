@@ -1,10 +1,13 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sa-logic
 spec:
   replicas: 2
   minReadySeconds: 15
+  selector:
+    matchLabels:
+      app: sa-logic
   strategy:
     type: RollingUpdate
     rollingUpdate: 
@@ -16,7 +19,7 @@ spec:
         app: sa-logic
     spec:
       containers:
-        - image: rinormaloku/sentiment-analysis-logic
+        - image: hollowman6/sa-logic
           imagePullPolicy: Always
           name: sa-logic
           ports:
