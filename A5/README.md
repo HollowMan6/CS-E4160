@@ -204,6 +204,7 @@ Add a rule to the nat table in the PREROUTING chain that matches all TCP packets
 
 ```bash
 sudo iptables -t nat -A PREROUTING -s lab2 -p tcp --dport 80 -j REDIRECT --to-port 3128
+nft add rule nat prerouting ip s <lab2-IP> tcp dport 80 redirect to :3128
 ```
 
 ### 4.2 Show and explain the changes you made to the squid.conf.
