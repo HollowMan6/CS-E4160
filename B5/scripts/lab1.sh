@@ -29,3 +29,44 @@ Host lab3
 EOL
 
 chmod 600 ~/.ssh/*
+
+sudo cp /vagrant/Server/pki/private/server.key /etc/openvpn/
+sudo cp /vagrant/CA/pki/issued/server.crt /etc/openvpn/
+sudo cp /vagrant/CA/pki/ca.crt /etc/openvpn/
+sudo cp /vagrant/Server/pki/dh.pem /etc/openvpn/
+sudo cp /vagrant/Server/ta.key /etc/openvpn/
+
+sudo cp /vagrant/server.conf /etc/openvpn/
+
+sudo cp /usr/share/doc/openvpn/examples/sample-scripts/bridge-start /etc/openvpn/
+sudo sed -i 's/eth0/enp0s8/g' /etc/openvpn/bridge-start
+sudo sed -i 's/192.168.8./192.168.0./g' /etc/openvpn/bridge-start
+sudo sed -i 's/192.168.0.4/192.168.0.2/g' /etc/openvpn/bridge-start
+sudo /etc/openvpn/bridge-start
+
+## Start server
+sudo tee /etc/systemd/system/server.service <<EOL
+[Unit]
+Description=Server service
+[Service]
+ExecStart=/bin/bash -c "openvpn /etc/openvpn/server.conf"
+[Install]
+WantedBy=multi-user.target
+EOL
+sudo systemctl enable server --now
+
+sudo cp /usr/share/doc/openvpn/examples/sample-scripts/bridge-stop /etc/openvpn/
+
+sudo systemctl stop server
+sudo /etc/openvpn/bridge-stop
+
+sudo cp /vagrant/server-routed.conf /etc/openvpn/server.conf
+sudo systemctl start server
+
+sudo sysctl -w net.ipv4.ip_forward=1
+sudo iptables -t nat -A POSTROUTING -o enp0s8 -j MASQUERADE
+
+# sudo systemctl stop server
+# sudo cp /vagrant/server.conf /etc/openvpn
+# sudo /etc/openvpn/bridge-start
+# sudo systemctl start server

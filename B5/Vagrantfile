@@ -18,7 +18,8 @@ Vagrant.configure("2") do |config|
     subconfig.vm.hostname = "lab1"
     # Set up networks
     subconfig.vm.network "private_network",
-      ip: "192.168.1.2", 
+      ip: "192.168.0.2",
+      netmask:"255.255.255.0",
       virtualbox__intnet: "intnet1"
     subconfig.vm.network "private_network",
       ip: "192.168.2.2",
@@ -28,13 +29,16 @@ Vagrant.configure("2") do |config|
       vb.customize ["modifyvm", :id, "--groups", "/lab"]
       vb.customize ["modifyvm", :id, "--memory", "4096"]
       vb.customize ["modifyvm", :id, "--cpus", "14"]
+      # enable promiscuous mode on the network
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+      vb.customize ["modifyvm", :id, "--nicpromisc3", "allow-all"]
     end
     # Add provisioning scripts
     subconfig.vm.provision "shell", inline: <<-SHELL
-      sudo echo "192.168.1.3 lab2" | sudo tee -a /etc/hosts
+      sudo echo "192.168.0.3 lab2" | sudo tee -a /etc/hosts
       sudo echo "192.168.2.3 lab3" | sudo tee -a /etc/hosts
       sudo apt update
-      sudo apt install -y net-tools
+      sudo apt install -y net-tools inetutils-traceroute nmap openvpn bridge-utils
     SHELL
     subconfig.vm.provision :shell, privileged: false, path: "scripts/lab1.sh"
   end
@@ -46,20 +50,23 @@ Vagrant.configure("2") do |config|
     subconfig.vm.hostname = "lab2"
     # Set up networks
     subconfig.vm.network "private_network",
-      ip: "192.168.1.3", 
+      ip: "192.168.0.3",
+      netmask:"255.255.255.0",
       virtualbox__intnet: "intnet1"
     subconfig.vm.provider "virtualbox" do |vb|
       # Custom VM Group, memory, and CPU cores
       vb.customize ["modifyvm", :id, "--groups", "/lab"]
       vb.customize ["modifyvm", :id, "--memory", "4096"]
       vb.customize ["modifyvm", :id, "--cpus", "14"]
+      # enable promiscuous mode on the network
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
     end
     # Add provisioning scripts
     subconfig.vm.provision "shell", inline: <<-SHELL
-      sudo ip addr add 192.168.2.3/24 dev enp0s8
-      sudo echo "192.168.1.2 lab1" | sudo tee -a /etc/hosts
+      sudo echo "192.168.0.2 lab1" | sudo tee -a /etc/hosts
       sudo echo "192.168.2.3 lab3" | sudo tee -a /etc/hosts
-      sudo apt install -y net-tools
+      sudo apt update
+      sudo apt install -y net-tools inetutils-traceroute nmap openvpn bridge-utils
     SHELL
     subconfig.vm.provision :shell, privileged: false, path: "scripts/lab2.sh"
   end
@@ -72,19 +79,22 @@ Vagrant.configure("2") do |config|
     # Set up networks
     subconfig.vm.network "private_network",
       ip: "192.168.2.3",
+      netmask:"255.255.255.0",
       virtualbox__intnet: "intnet2"
     subconfig.vm.provider "virtualbox" do |vb|
       # Custom VM Group, memory, and CPU cores
       vb.customize ["modifyvm", :id, "--groups", "/lab"]
       vb.customize ["modifyvm", :id, "--memory", "4096"]
       vb.customize ["modifyvm", :id, "--cpus", "14"]
+      # enable promiscuous mode on the network
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
     end
     # Add provisioning scripts
     subconfig.vm.provision "shell", inline: <<-SHELL
-      sudo ip addr add 192.168.1.3/24 dev enp0s8
       sudo echo "192.168.2.2 lab1" | sudo tee -a /etc/hosts
-      sudo echo "192.168.1.3 lab2" | sudo tee -a /etc/hosts
-      sudo apt install -y net-tools
+      sudo echo "192.168.0.3 lab2" | sudo tee -a /etc/hosts
+      sudo apt update
+      sudo apt install -y net-tools inetutils-traceroute nmap openvpn bridge-utils
     SHELL
     subconfig.vm.provision :shell, privileged: false, path: "scripts/lab3.sh"
   end
