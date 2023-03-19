@@ -278,7 +278,7 @@ DMZ topology
 1. On lab1 set up the nftables firewall with 3 network cards. You should forward port 8080 from your host to lab1
 eth0 is attached to NAT
 eth1 is attached to DMZ (lab2)
-eth3 is attached to Internal network (lab3)
+eth2 is attached to Internal network (lab3)
 2. Add a rule to the prerouting chain that redirects incoming packets on port 8080 to the port 80 on lab2. It means the traffic coming from eth0 will be redirected to eth1. 
 3. Add a rule to the postrouting chain to masquerade outgoing traffic.
 4. The traffic coming from eth2 to eth 1 would be passed without any problem.
@@ -287,7 +287,11 @@ eth3 is attached to Internal network (lab3)
 
 ### 5.1 Demonstrate you can browse the Apache webserver from your host and lab3. Demonstrate you cannot ping from lab2 to lab3
 
-
+```bash
+vagrant@lab2:~$ sudo ip route del 192.168.2.0/24 via 192.168.0.2 dev enp0s8
+vagrant@lab3:~$ sudo ip route del 192.168.0.0/24 via 192.168.2.2 dev enp0s8
+vagrant@lab3:~$ curl lab1:8080
+```
 ### 5.2 List the commands you used to set up the DMZ in nftables. You must show the prerouting, postrouting , forward, input and output chains.
 
 ```bash

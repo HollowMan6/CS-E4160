@@ -68,4 +68,8 @@ sudo apt install -y squid
 # EOL
 # sudo systemctl restart squid
 
-
+sudo nft add table ip filter
+sudo nft add chain ip filter prerouting { type nat hook prerouting priority 0 \; policy accept \; }
+sudo nft add rule ip filter prerouting tcp dport 8080 dnat to 192.168.0.3:80
+sudo nft add chain ip filter postrouting { type nat hook postrouting priority 0 \; policy accept \; }
+sudo nft add rule ip filter postrouting oif enp0s3 masquerade

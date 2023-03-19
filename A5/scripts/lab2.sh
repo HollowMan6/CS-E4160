@@ -5,3 +5,4 @@ ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBLS+lOidBwey5z6gSoHuio4Ik3iV4t/QcgSlopXW5ym
 EOL
 
 touch 1.txt
+sudo apt install -y apache2
