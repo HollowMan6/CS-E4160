@@ -226,12 +226,7 @@ A transparent proxy is a proxy that intercepts and modifies all traffic that is 
 
 ### 4.4 List the differences in HTTP headers after setting up the proxy. What has changed?
 ```bash
-nc lab3 80 <<EOL
-GET / HTTP/1.1
-Host: lab1
-Connection: close
-
-EOL
+curl -I lab3
 ```
 
 before setting up the proxy:

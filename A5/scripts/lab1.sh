@@ -58,18 +58,19 @@ sudo apt install -y squid
 # sudo nft add rule inet filter forward iif enp0s8 tcp dport {20-21} ct state new,established counter accept
 # sudo nft add rule inet filter forward oif enp0s8 tcp sport {20-21} ct state established counter accept
 
-# sudo iptables -t nat -A PREROUTING -s lab2 -p tcp --dport 80 -j REDIRECT --to-port 3128
+sudo nft add table ip filter
+sudo nft add chain ip filter prerouting { type nat hook prerouting priority 0 \; policy accept \; }
+
+# sudo nft add rule ip filter prerouting tcp dport 80 redirect to :3128
+
 # sudo tee -a /etc/squid/squid.conf <<EOL
 # http_port 3128 transparent
 # acl lab2 src 192.168.0.3/32    # IP address of lab2
 
 # http_access allow lab2
-# http_access deny all
 # EOL
 # sudo systemctl restart squid
 
-sudo nft add table ip filter
-sudo nft add chain ip filter prerouting { type nat hook prerouting priority 0 \; policy accept \; }
 sudo nft add rule ip filter prerouting tcp dport 8080 dnat to 192.168.0.3:80
 sudo nft add chain ip filter postrouting { type nat hook postrouting priority 0 \; policy accept \; }
 sudo nft add rule ip filter postrouting oif enp0s3 masquerade
