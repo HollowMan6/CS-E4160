@@ -45,28 +45,24 @@ sudo sed -i 's/192.168.0.4/192.168.0.2/g' /etc/openvpn/bridge-start
 sudo /etc/openvpn/bridge-start
 
 ## Start server
-sudo tee /etc/systemd/system/server.service <<EOL
-[Unit]
-Description=Server service
-[Service]
-ExecStart=/bin/bash -c "openvpn /etc/openvpn/server.conf"
-[Install]
-WantedBy=multi-user.target
-EOL
-sudo systemctl enable server --now
+sudo systemctl enable openvpn@server --now
 
 sudo cp /usr/share/doc/openvpn/examples/sample-scripts/bridge-stop /etc/openvpn/
 
-sudo systemctl stop server
-sudo /etc/openvpn/bridge-stop
+# sudo systemctl stop openvpn@server
+# sudo /etc/openvpn/bridge-stop
 
-sudo cp /vagrant/server-routed.conf /etc/openvpn/server.conf
-sudo systemctl start server
+# sudo cp /vagrant/server-routed.conf /etc/openvpn/server.conf
+# sudo systemctl start openvpn@server
 
 sudo sysctl -w net.ipv4.ip_forward=1
 sudo iptables -t nat -A POSTROUTING -o enp0s8 -j MASQUERADE
 
-# sudo systemctl stop server
+
+
+
+
+# sudo systemctl stop openvpn@server
 # sudo cp /vagrant/server.conf /etc/openvpn
 # sudo /etc/openvpn/bridge-start
-# sudo systemctl start server
+# sudo systemctl start openvpn@server

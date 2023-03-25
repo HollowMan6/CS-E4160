@@ -55,15 +55,16 @@ The purpose of each of the generated files in the PKI for OpenVPN is as follows:
 - Server certificate/key: This certificate/key is used by the OpenVPN server to authenticate itself to the clients.
 - Client certificate/key: This certificate/key is used by the OpenVPN clients to authenticate themselves to the server.
 - Diffie-Hellman (DH) parameters: These parameters are used to establish the initial encryption key that is used for the OpenVPN connection.
-- TLS authentication key: This is an additional layer of security that is used to authenticate the OpenVPN packets and prevent unauthorized access.
+- HMac signature: This is used to authenticate the OpenVPN packets and prevent unauthorized access.
 
 For a client to establish a connection with the OpenVPN server, they need to have the following files:
 - Client certificate/key
 - CA certificate
-The DH parameters and TLS authentication key are already used during the initial handshake between the server and the client.
+- The DH parameters
+- HMac signature key.
 
 ### 2.2 Is there a simpler way of authentication available in OpenVPN? What are its benefits/drawbacks?
-Yes, there is a simpler way of authentication available in OpenVPN called "static key authentication". In this method, a pre-shared secret key is used instead of a PKI. The benefit of this method is that it is simple to set up and does not require the overhead of a PKI. However, the drawback is that it is less secure than using a PKI, as there is only one shared secret key for all clients and the server. This means that if the key is compromised, all clients are compromised.
+Yes, there is a simpler way of authentication available in OpenVPN called "static key authentication". In this method, a pre-shared secret key is used instead of a PKI. Another simpler way is to securely obtain a username and password from a connecting client, and to use that information as a basis for authenticating the client. It is also possible to disable the use of client certificates, and force username/password authentication only. It uses client-cert-not-required may remove the cert and key directives from the client configuration file, but not the ca directive, because it is necessary for the client to verify the server certificate. The benefit of this method is that it is simple to set up and does not require the overhead of a PKI. However, the drawback is that it is less secure than using a PKI, as there is only one shared secret key for all clients and the server. This means that if the key is compromised, all clients are compromised.
 
 ## 3. Configuring the VPN server
 On GW copy /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz to for example /etc/openvpn and extract it. You have to edit the server.conf to use bridged mode with the correct virtual interface. You also have to check that the keys and certificates point to the correct files. Set the server to listen for connection in GW's enp0s9 IP address.
@@ -75,10 +76,11 @@ Start the server on GW with openvpn server.conf .
 
 ### 3.2 What IP address space did you allocate to the OpenVPN clients?
 
-10.8.0.0/24
+192.168.0.2/24
+192.168.0.50-192.168.0.100
 
 ### 3.3 Where can you find the log messages of the server by default? How can you change this?
-The log messages of the OpenVPN server are typically stored in the syslog on Linux systems. However, the location can be changed by modifying the "log" option in the OpenVPN server configuration file. Additionally, the "verb" option can be used to control the verbosity of the log messages.
+The log messages of the OpenVPN server are typically stored in the syslog on Linux systems. However, the location can be changed by modifying the "status", "log", "log-append" option in the OpenVPN server configuration file. Additionally, the "verb" option can be used to control the verbosity of the log messages.
 
 ## 4. Bridging setup
 Next you have to setup network bridging on the GW. We'll combine the enp0s8 interface of the gateway with a virtual TAP interface and bridge them together under an umbrella bridge interface.
@@ -90,17 +92,43 @@ OpenVPN provides a script for this in /usr/share/doc/openvpn/examples/sample-scr
 Same as enp0s8, which is 192.168.0.2
 
 ### 4.2 What is the difference between routing and bridging in VPN? What are the benefits/disadvantages of the two? When would you use routing and when bridging?
-Routing and bridging are two different methods for connecting networks in a VPN.
+Routing and bridging are two methods used for forwarding network traffic in a VPN (Virtual Private Network).
 
-Routing: In routing mode, the VPN server acts as a gateway between two separate networks. Each client connects to the VPN server and sends all of its traffic to the server, which then routes it to the other network. This method can be used to connect networks that are not in the same broadcast domain.
+Routing:
 
-Bridging: In bridging mode, the VPN server creates a virtual network interface that is connected to the physical network interface of the server. The VPN clients connect to the virtual interface and appear as if they are directly connected to the physical network. This method can be used to connect networks that are in the same broadcast domain.
+Routing is the process of forwarding packets of data between different networks based on the network addresses of the packets. In VPN, routing involves using routers to direct traffic between different subnets or networks. When a packet is received, the router checks its destination IP address and then forwards it to the appropriate network.
 
-The benefits of routing include scalability, ease of configuration, and the ability to connect networks that are not in the same broadcast domain. The drawbacks of routing include reduced performance due to the overhead of routing packets, and the need for more complex configuration.
+Benefits:
 
-The benefits of bridging include improved performance and simplicity of configuration, as the VPN clients appear as if they are directly connected to the physical network. The drawbacks of bridging include reduced scalability, as bridging can become more difficult to manage as the number of clients increases, and the inability to connect networks that are not in the same broadcast domain.
+- Routing is more scalable than bridging as it can handle a larger number of connected devices and networks.
+- Routing allows you to implement more advanced network security policies, such as traffic filtering, traffic shaping, and access control.
+- Routing provides better performance than bridging, as it reduces network congestion by reducing broadcast traffic.
 
-Routing is typically used when connecting separate networks, while bridging is typically used when connecting clients to an existing network.
+Disadvantages:
+
+- Routing can be more complicated to set up and manage than bridging, especially if you have a complex network topology.
+- Routing requires more configuration on the client-side, and may not be as straightforward as setting up a bridge.
+
+Bridging:
+
+Bridging is the process of forwarding packets of data between two network segments at the data-link layer. In VPN, bridging involves creating a virtual network interface that combines multiple physical interfaces into a single logical interface. All traffic is then forwarded between the virtual interface and the physical interfaces.
+
+Benefits:
+
+- Bridging is simpler to set up and manage than routing, especially for small-scale networks.
+- Bridging allows you to connect multiple devices and networks as if they were on the same LAN.
+- Bridging is useful for applications that rely on broadcast traffic, such as DHCP, ARP, and some network discovery protocols.
+
+Disadvantages:
+
+- Bridging can lead to broadcast storms and network congestion if the network is too large or has too many connected devices.
+- Bridging can be less secure than routing, as it may not support advanced security policies such as traffic filtering, traffic shaping, and access control.
+
+When to use routing vs. bridging in VPN:
+
+Routing is typically used for larger-scale networks where there are multiple subnets and complex network topologies. It is also useful for network architectures that require advanced security policies, such as site-to-site VPNs.
+
+Bridging is typically used for smaller-scale networks with fewer devices, where simplicity and ease of management are more important than advanced security policies. It is also useful for applications that rely on broadcast traffic.
 
 ## 5. Configuring the VPN client and testing connection
 On RW copy /usr/share/doc/openvpn/examples/sample-config-files/client.conf to for example /etc/openvpn. Edit the client.conf to match with the settings of the server. Remember to check that the certificates and keys point to the right folders.
@@ -141,13 +169,17 @@ listening on enp0s9, link-type EN10MB (Ethernet), snapshot length 262144 bytes
 15:11:54.588168 IP lab3.38033 > lab1.openvpn: UDP, length 90
 ```
 
-Because the OpenVPN protocol encapsulates the messages inside encrypted packets using SSL/TLS encryption. The messages are only decrypted on the receiving end after going through the OpenVPN encryption and decryption process.
+Because after openVPN v2.4 client/server will automatically negotiate AES-256-GCM in TLS mode, the OpenVPN protocol encapsulates the messages inside encrypted packets using SSL/TLS encryption. The messages are only decrypted on the receiving end after going through the OpenVPN encryption and decryption process.
+
+```bash
+sudo tcpdump -i enp0s9 -s 0 -w - port 5000
+```
 
 ### 5.4 Enable ciphering. Is there a way to capture and read the messages sent in 5.2 on GW despite the encryption? Where is the message encrypted and where is it not?
 
-Enabling ciphering in the OpenVPN configuration will encrypt the messages being sent between the client and the server using SSL/TLS encryption. The encryption happens on the client-side before sending the messages and on the server-side before receiving the messages. Therefore, even if we capture the encrypted packets using a packet capture tool like tcpdump or Wireshark, we won't be able to read the messages in plain text because they are still encrypted.
+Yes, as enabling ciphering in the OpenVPN configuration will only encrypt the messages being sent between the client and the server using SSL/TLS encryption. The encryption only happens on the client-side after sending the messages and on the server-side before receiving the messages. Therefore, if we capture the packets using a packet capture tool like tcpdump or Wireshark at br0, enp0s8, we are able to read the messages in plain text because they are still encrypted.
 
-However, if we have the correct encryption keys or certificates, we can decrypt the captured packets and read the messages in plain text. This can be done using Wireshark's SSL/TLS decryption feature. By providing the decryption keys or certificates, Wireshark can decrypt the captured packets and display the contents in plain text.
+Also, as we store certificates on GW (lab1), we have the correct encryption keys or certificates, so we can also decrypt the captured packets and read the messages in plain text. This can be done using Wireshark's SSL/TLS decryption feature. By providing the decryption keys or certificates, Wireshark can decrypt the captured packets and display the contents in plain text.
 
 ### 5.5 Traceroute RW from SS and vice versa. Explain the result.
 
@@ -155,6 +187,10 @@ However, if we have the correct encryption keys or certificates, we can decrypt 
 vagrant@lab3:~$ traceroute lab2
 traceroute to lab2 (192.168.0.3), 64 hops max
   1   192.168.0.3  2.035ms  1.307ms  0.856ms
+traceroute to lab3 (192.168.2.3), 64 hops max
+  1   10.0.2.2  0.448ms  0.346ms  0.328ms 
+  2   *  *  * 
+  3   * 
 ```
 
 The result of the traceroute command indicates that the destination host "lab2" with IP address 192.168.0.3 was reached within a single hop, with a response time of 2.035ms. This suggests that the source host and the destination host are on the same local network segment, and there are no intermediate routers or gateways that the packets need to pass through to reach the destination with VPN. Therefore, the packets can be sent directly from the source host to the destination host with minimal latency.
@@ -168,7 +204,7 @@ In this task, you have to set up routed VPN as opposed to the bridged VPN above.
 ### 6.1 List and give a short explanation of the commands you used in your server configuration
 
 
-### 6.2 Show with ifconfig that you have created the new virtual IP interfaces . What's the IP  address?
+### 6.2 Show with ifconfig that you have created the new virtual IP interfaces . What's the IP address?
 
 10.8.0.1
 

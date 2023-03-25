@@ -13,20 +13,15 @@ sudo cp /vagrant/Server/ta.key /etc/openvpn/
 sudo cp /vagrant/client.conf /etc/openvpn/
 
 ## Start client
-sudo tee /etc/systemd/system/client.service <<EOL
-[Unit]
-Description=Client service
-[Service]
-ExecStart=/bin/bash -c "openvpn /etc/openvpn/client.conf"
-[Install]
-WantedBy=multi-user.target
-EOL
-sudo systemctl enable client --now
+sudo systemctl enable openvpn@client --now
 
-sudo systemctl stop client
-sudo cp /vagrant/client-routed.conf /etc/openvpn/client.conf
-sudo systemctl start client
+# sudo systemctl stop openvpn@client
+# sudo cp /vagrant/client-routed.conf /etc/openvpn/client.conf
+# sudo systemctl start openvpn@client
 
-# sudo systemctl stop client
+
+
+
+# sudo systemctl stop openvpn@client
 # sudo cp /vagrant/client.conf /etc/openvpn/
-# sudo systemctl start client
+# sudo systemctl start openvpn@client

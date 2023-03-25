@@ -14,7 +14,7 @@ Vagrant.configure("2") do |config|
   ## Lab 1
   config.vm.define "lab1" do |subconfig|
     # Set box and hostname
-    subconfig.vm.box = "ubuntu/jammy64"    
+    subconfig.vm.box = "ubuntu/focal64"    
     subconfig.vm.hostname = "lab1"
     # Set up networks
     subconfig.vm.network "forwarded_port", guest: 8080, host: 8080
@@ -40,7 +40,7 @@ Vagrant.configure("2") do |config|
       sysctl -w net.ipv4.conf.enp0s8.proxy_arp=1
       sysctl -w net.ipv4.conf.enp0s9.proxy_arp=1
       sudo apt update
-      sudo apt install -y net-tools inetutils-traceroute nmap
+      sudo apt install -y net-tools inetutils-traceroute nmap nftables
     SHELL
     subconfig.vm.provision :shell, privileged: false, path: "scripts/lab1.sh"
   end
@@ -48,7 +48,7 @@ Vagrant.configure("2") do |config|
   ## Lab 2
   config.vm.define "lab2" do |subconfig|
     # Set box and hostname
-    subconfig.vm.box = "ubuntu/jammy64"
+    subconfig.vm.box = "ubuntu/focal64"
     subconfig.vm.hostname = "lab2"
     # Set up networks
     subconfig.vm.network "private_network",
@@ -67,7 +67,7 @@ Vagrant.configure("2") do |config|
       sudo echo "192.168.2.3 lab3" | sudo tee -a /etc/hosts
       sudo ip route add 192.168.2.0/24 via 192.168.0.2 dev enp0s8
       sudo apt update
-      sudo apt install -y net-tools inetutils-traceroute nmap
+      sudo apt install -y net-tools inetutils-traceroute nmap nftables
     SHELL
     subconfig.vm.provision :shell, privileged: false, path: "scripts/lab2.sh"
   end
@@ -75,7 +75,7 @@ Vagrant.configure("2") do |config|
   ## Lab 3
   config.vm.define "lab3" do |subconfig|
     # Set box and hostname
-    subconfig.vm.box = "ubuntu/jammy64"
+    subconfig.vm.box = "ubuntu/focal64"
     subconfig.vm.hostname = "lab3"
     # Set up networks
     subconfig.vm.network "private_network",
@@ -94,7 +94,7 @@ Vagrant.configure("2") do |config|
       sudo echo "192.168.0.3 lab2" | sudo tee -a /etc/hosts
       sudo ip route add 192.168.0.0/24 via 192.168.2.2 dev enp0s8
       sudo apt update
-      sudo apt install -y net-tools inetutils-traceroute nmap
+      sudo apt install -y net-tools inetutils-traceroute nmap nftables
     SHELL
     subconfig.vm.provision :shell, privileged: false, path: "scripts/lab3.sh"
   end
