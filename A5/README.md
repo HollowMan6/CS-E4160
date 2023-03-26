@@ -113,32 +113,62 @@ Finally, rescan lab3 from lab2 and vice versa.
 
 
 ### 3.1 List the services that were found scanning the machines with and without the firewall active. Explain the differences in how the details of the system were detected.
-
+Before:
 ```bash
 vagrant@lab2:~$ sudo nmap -sV -p- lab3
-Starting Nmap 7.80 ( https://nmap.org ) at 2023-03-15 12:56 UTC
+Starting Nmap 7.80 ( https://nmap.org ) at 2023-03-25 22:45 UTC
 Nmap scan report for lab3 (192.168.2.3)
-Host is up (0.0032s latency).
-Not shown: 65534 closed ports
+Host is up (0.00030s latency).
+Not shown: 65532 closed ports
 PORT   STATE SERVICE VERSION
-22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.1 (Ubuntu Linux; protocol 2.0)
+21/tcp open  ftp     ProFTPD
+22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)
+80/tcp open  http    Apache httpd 2.4.41 ((Ubuntu))
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
-Nmap done: 1 IP address (1 host up) scanned in 8.69 seconds
+Nmap done: 1 IP address (1 host up) scanned in 18.74 seconds
 vagrant@lab3:~$ sudo nmap -sV -p- lab2
-Starting Nmap 7.80 ( https://nmap.org ) at 2023-03-15 12:56 UTC
+Starting Nmap 7.80 ( https://nmap.org ) at 2023-03-25 22:51 UTC
 Nmap scan report for lab2 (192.168.0.3)
-Host is up (0.00064s latency).
+Host is up (0.0087s latency).
 Not shown: 65534 closed ports
 PORT   STATE SERVICE VERSION
-22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.1 (Ubuntu Linux; protocol 2.0)
+22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
-Nmap done: 1 IP address (1 host up) scanned in 10.81 seconds
+Nmap done: 1 IP address (1 host up) scanned in 7.34 seconds
 ```
-Without the firewall active, nmap scanning may show more open ports and running services on the target machines. This is because the firewall may be blocking certain ports and services. With the firewall active, the number of open ports and running services may be reduced, as the firewall is blocking traffic to certain ports and services.
+
+After:
+```bash
+vagrant@lab2:~$ sudo nmap -sV -p- lab3
+Starting Nmap 7.80 ( https://nmap.org ) at 2023-03-25 23:06 UTC
+Nmap scan report for lab3 (192.168.2.3)
+Host is up (0.0023s latency).
+Not shown: 65532 closed ports
+PORT   STATE SERVICE VERSION
+21/tcp open  ftp     ProFTPD
+22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)
+80/tcp open  http    Apache httpd 2.4.41 ((Ubuntu))
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 18.25 seconds
+vagrant@lab3:~$ sudo nmap -sV -p- lab2
+Starting Nmap 7.80 ( https://nmap.org ) at 2023-03-25 23:07 UTC
+Nmap scan report for lab2 (192.168.0.3)
+Host is up (0.00034s latency).
+Not shown: 65534 closed ports
+PORT   STATE SERVICE    VERSION
+22/tcp open  tcpwrapped
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 13.28 seconds
+```
+
+This is because the firewall may be blocking ports and services. Nmap detects system details by sending a series of TCP and UDP packets to the remote host and examining practically every bit in the responses. Nmap then runs various tests from TCP ISN sampling to IP ID sampling and compares it to its internal database of 2,600 operating systems
 
 ### 3.2 List the commands used to implement the ruleset with explanations.
 
@@ -149,35 +179,53 @@ sudo nft delete rule inet filter forward handle 16
 ### 3.3 Create a few test cases to verify your ruleset. Run the tests and provide minimal, but sufficient snippets of iptables' or tcpdump's logs to support your test results.
 
 ```bash
-curl lab3
-
 vagrant@lab2:~$ ftp lab3
 Connected to lab3.
 220 ProFTPD Server (Debian) [::ffff:192.168.2.3]
-Name (lab3:vagrant): 
+Name (lab3:vagrant): vagrant
 331 Password required for vagrant
-Password: 
+Password:
 230 User vagrant logged in
 Remote system type is UNIX.
 Using binary mode to transfer files.
 ftp> ls
-229 Entering Extended Passive Mode (|||5448|)
+200 PORT command successful
 150 Opening ASCII mode data connection for file list
--rw-r--r--   1 vagrant  vagrant         0 Mar 15 13:05 1.txt
 226 Transfer complete
 ftp> passive
-Passive mode: off; fallback to active mode: off.
+Passive mode on.
 ftp> ls
-200 EPRT command successful
+227 Entering Passive Mode (192,168,2,3,178,201).
 150 Opening ASCII mode data connection for file list
--rw-r--r--   1 vagrant  vagrant         0 Mar 15 13:05 1.txt
 226 Transfer complete
 ftp> put 1.txt 1.txt
 local: 1.txt remote: 1.txt
-200 EPRT command successful
+227 Entering Passive Mode (192,168,2,3,168,47).
 150 Opening BINARY mode data connection for 1.txt
-     0        0.00 KiB/s 
 226 Transfer complete
+ftp> passive
+Passive mode off.
+ftp> put 1.txt 1.txt
+local: 1.txt remote: 1.txt
+200 PORT command successful
+150 Opening BINARY mode data connection for 1.txt
+226 Transfer complete
+ftp> ls
+200 PORT command successful
+150 Opening ASCII mode data connection for file list
+-rw-r--r--   1 vagrant  vagrant         0 Mar 25 22:39 1.txt
+226 Transfer complete
+```
+
+```bash
+vagrant@lab3:~$ sudo tcpdump -i enp0s8
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on enp0s8, link-type EN10MB (Ethernet), capture size 262144 bytes
+22:41:01.533431 IP lab2.45336 > lab3.ftp: Flags [P.], seq 1598340732:1598340758, ack 3330061165, win 502, options [nop,nop,TS val 1758536159 ecr 998374888], length 26: FTP: PORT 192,168,0,3,188,249
+22:41:01.533690 IP lab3.ftp > lab2.45336: Flags [P.], seq 1:30, ack 26, win 510, options [nop,nop,TS val 998447520 ecr 1758536159], length 29: FTP: 200 PORT command successful
+22:41:01.534768 IP lab2.45336 > lab3.ftp: Flags [P.], seq 26:32, ack 30, win 502, options [nop,nop,TS val 1758536161 ecr 998447520], length 6: FTP: LIST
+22:41:01.534967 IP lab3.ftp-data > lab2.48377: Flags [S], seq 1869841352, win 64240, options [mss 1460,sackOK,TS val 998447521 ecr 0,nop,wscale 7], length 0
+22:41:01.536012 IP lab2.48377 > lab3.ftp-data: Flags [S.], seq 3940072064, ack 1869841353, win 65160, options [mss 1460,sackOK,TS val 1758536162 ecr 998447521,nop,wscale 7], length 0
 ```
 
 ### 3.4 Explain the difference between netfilter DROP and REJECT targets. Test both of them, and explain your findings.
@@ -200,25 +248,29 @@ Configure the firewall on lab1 to send all TCP traffic from lab2 bound to port 8
 Connect to the HTTP server on lab3 again and capture the headers of the response.
 Finally, configure the proxy not to serve pages from lab3 and attempt to retrieve the front page.
 ### 4.1 List the commands you used to send the traffic to the proxy with explanations.
-Add a rule to the nat table in the PREROUTING chain that matches all TCP packets from lab2 destined to port 80 and redirects them to port 3128, where the squid proxy is listening:
+Add a rule to the nat table in the PREROUTING chain that matches all TCP packets from lab2 destined to port 80 and redirects them to port 8000, where the squid proxy is listening:
 
 ```bash
-sudo iptables -t nat -A PREROUTING -s lab2 -p tcp --dport 80 -j REDIRECT --to-port 3128
-nft add rule nat prerouting ip s <lab2-IP> tcp dport 80 redirect to :3128
+sudo nft add rule ip filter prerouting iifname enp0s8 ip saddr lab2 tcp dport 80 redirect to :8000
 ```
 
 ### 4.2 Show and explain the changes you made to the squid.conf.
 To configure squid as a transparent proxy, I made the following changes to the squid.conf file on lab1:
 
 ```conf
-# This line tells squid to listen on port 3128 and act as a transparent proxy.
-http_port 3128 transparent
-# This line defines an access control list (acl) named lab2 that matches the source IP address of lab2.
-acl lab2 src lab2
-# This line allows HTTP access for the acl lab2.
-http_access allow lab2
-# This line denies HTTP access for all other requests.
-http_access deny all
+# This line tells squid to listen on port 8000 and act as a transparent proxy.
+http_port 8000 transparent
+; # This line defines an access control list (acl) named lab2 that matches the source IP address of lab2.
+; acl localnet src 192.168.0.0/24
+; # This line allows HTTP access for the acl lab2.
+; http_access allow lab2
+# This line allow HTTP access for all the requests.
+http_reply_access allow all
+http_access allow all
+
+# configure Squid not to serve pages from lab3
+# acl lab3 dstdomain lab3
+# never_direct allow lab3
 ```
 
 ### 4.3 What is a transparent proxy?
@@ -231,39 +283,56 @@ curl -I lab3
 
 before setting up the proxy:
 ```bash
-HTTP/1.1 400 Bad Request
-Date: Wed, 15 Mar 2023 19:22:21 GMT
-Server: Apache/2.4.52 (Ubuntu)
-Content-Length: 301
-Connection: close
-Content-Type: text/html; charset=iso-8859-1
+vagrant@lab2:~$ curl -I lab3
+HTTP/1.1 200 OK
+Date: Sat, 25 Mar 2023 22:20:29 GMT
+Server: Apache/2.4.41 (Ubuntu)
+Last-Modified: Sat, 25 Mar 2023 22:11:34 GMT
+ETag: "2aa6-5f7c0caf76d35"
+Accept-Ranges: bytes
+Content-Length: 10918
+Vary: Accept-Encoding
+Content-Type: text/html
 ```
 
 After setting up the proxy:
 ```bash
-GET / HTTP/1.1
-Host: lab1
-Connection: close
-
-EOL
-HTTP/1.1 400 Bad Request
-Server: squid/5.2
-Mime-Version: 1.0
-Date: Wed, 15 Mar 2023 19:35:25 GMT
-Content-Type: text/html;charset=utf-8
-Content-Length: 3493
-X-Squid-Error: ERR_INVALID_URL 0
-Vary: Accept-Language
-Content-Language: en
+vagrant@lab2:~$ curl -I lab3
+HTTP/1.1 200 OK
+Date: Sat, 25 Mar 2023 22:22:07 GMT
+Server: Apache/2.4.41 (Ubuntu)
+Last-Modified: Sat, 25 Mar 2023 22:11:34 GMT
+ETag: "2aa6-5f7c0caf76d35"
+Accept-Ranges: bytes
+Content-Length: 10918
+Vary: Accept-Encoding
+Content-Type: text/html
 X-Cache: MISS from lab1
-X-Cache-Lookup: NONE from lab1:3128
-Via: 1.1 lab1 (squid/5.2)
-Connection: close
+X-Cache-Lookup: MISS from lab1:3128
+Via: 1.1 lab1 (squid/4.10)
+Connection: keep-alive
+
+vagrant@lab2:~$ curl -I lab3
+HTTP/1.1 200 OK
+Date: Sat, 25 Mar 2023 22:22:07 GMT
+Server: Apache/2.4.41 (Ubuntu)
+Last-Modified: Sat, 25 Mar 2023 22:11:34 GMT
+ETag: "2aa6-5f7c0caf76d35"
+Accept-Ranges: bytes
+Content-Length: 10918
+Vary: Accept-Encoding
+Content-Type: text/html
+Age: 103
+X-Cache: HIT from lab1
+X-Cache-Lookup: HIT from lab1:3128
+Via: 1.1 lab1 (squid/4.10)
+Connection: keep-alive
 ```
-- The request header has an additional line: `X-Forwarded-For: lab2`, which indicates the original source IP address of the request.
-- The response header has an additional line: `Via: 1.1 lab1 (squid/5.2)`, which indicates that the response was processed by squid on lab1.
+
+- The response header has an additional line: `Via: 1.1 lab1 (squid/4.10)`, which indicates that the response was processed by squid on lab1.
 - The response header has an additional line: `X-Cache: MISS from lab1`, which indicates that the response was not cached by squid on lab1.
-- The response header has an additional line: `X-Cache-Lookup: NONE from lab1:3128`, which indicates that squid on lab1 did not find the requested resource in its cache.
+- The response header has an additional line: `X-Cache-Lookup: MISS from lab1:3128`, which indicates that squid on lab1 did not find the requested resource in its cache.
+- The response header has an additional line: `Age: 103`, which indicates that the response was cached by squid on lab1 for 103 seconds.
 
 ## 5. Implement a DMZ
 A DMZ (demilitarized zone) network is a physical or logical subnet that separates an internal local area network (LAN) from other untrusted networks (usually the Internet). The purpose of a DMZ is to add an extra layer of security to an organization's LAN. In this way, each external network node can access only what is provided through the DMZ, and the rest of the organization's network remains behind the firewall. In this task we design a DMZ network with a firewall. Assume your organizations outward facing webserver running on lab2 is in a DMZ and your lab3 is in Internal Network, while lab1 is the firewall host executing the firewall rules as shown below.
@@ -283,58 +352,45 @@ eth2 is attached to Internal network (lab3)
 ### 5.1 Demonstrate you can browse the Apache webserver from your host and lab3. Demonstrate you cannot ping from lab2 to lab3
 
 ```bash
-vagrant@lab2:~$ sudo ip route del 192.168.2.0/24 via 192.168.0.2 dev enp0s8
-vagrant@lab3:~$ sudo ip route del 192.168.0.0/24 via 192.168.2.2 dev enp0s8
 vagrant@lab3:~$ curl lab1:8080
 ```
 ### 5.2 List the commands you used to set up the DMZ in nftables. You must show the prerouting, postrouting , forward, input and output chains.
 
 ```bash
-# Define variables for IP addresses
-define DMZ = 192.168.1.0/24
-define INTERNAL = 192.168.2.0/24
+#!/usr/sbin/nft -f
 
-# Define the interfaces
-define eth0 = ens3 # Attached to NAT
-define eth1 = ens4 # Attached to DMZ (lab2)
-define eth2 = ens5 # Attached to Internal network (lab3)
+flush ruleset
 
-# Enable IP forwarding
-net.ipv4.ip_forward = 1
-
-# Define the chains
-table inet firewall {
+table ip nat {
     chain prerouting {
-        type nat hook prerouting priority -100;
-        # Redirect incoming packets on port 8080 to the port 80 on lab2
-        tcp dport 8080 dnat to ${DMZ}:80
+        type nat hook prerouting priority 0; policy accept;
+        tcp dport 8080 dnat to 192.168.0.3:80
     }
 
     chain postrouting {
-        type nat hook postrouting priority 100;
-        # Masquerade outgoing traffic
-        ip saddr ${DMZ} oif eth0 masquerade
+        type nat hook postrouting priority 0; policy accept;
+        oif enp0s3 masquerade
     }
+}
 
-    chain forward {
-        # Allow traffic from DMZ to Internal network
-        iif eth1 oif eth2 accept
-        # Block all other traffic
-        drop
-    }
-
+table inet filter {
     chain input {
-        # Allow SSH traffic to lab1
-        tcp dport ssh accept
-        # Allow HTTP traffic to lab1
-        tcp dport http accept
-        # Block all other traffic
+        type filter hook input priority 0; policy accept;
+        iif lo accept
+        tcp dport 22 accept
+        tcp dport 8080 accept
         drop
     }
 
     chain output {
-        # Allow all outgoing traffic
-        accept
+		type filter hook output priority 0;
+	}
+
+    chain forward {
+        type filter hook forward priority 0; policy accept;
+        iif enp0s9 oif enp0s8 ct state new,related,established accept
+        iif enp0s8 oif enp0s9 ct state related,established accept
+        drop
     }
 }
 ```

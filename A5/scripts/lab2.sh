@@ -35,4 +35,6 @@ EOL
 chmod 600 ~/.ssh/*
 
 touch 1.txt
-sudo apt install -y apache2
+cat <<EOL > 1.txt
+Hello World!
+EOL

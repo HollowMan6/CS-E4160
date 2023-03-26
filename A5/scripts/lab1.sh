@@ -30,55 +30,54 @@ EOL
 
 chmod 600 ~/.ssh/*
 
+sudo modprobe ip_conntrack_ftp
 sudo apt install -y squid
 
 # Create a table and a chain for the FORWARD hook with nftables:
 sudo nft add table inet filter
-sudo nft add chain inet filter forward { type filter hook forward priority 0 \; policy drop \; }
-# This will create a table named filter and a chain named forward that will drop all packets by default.
+# sudo nft add chain inet filter forward { type filter hook forward priority 0 \; policy drop \; }
+# # This will create a table named filter and a chain named forward that will drop all packets by default.
 
-# Allow ping from lab2 on the enp0s8 interface and replies to lab2:
-sudo nft add rule inet filter forward iif enp0s8 icmp type echo-request counter accept
-sudo nft add rule inet filter forward oif enp0s8 icmp type echo-reply counter accept
+# # Allow ping from lab2 on the enp0s8 interface and replies to lab2:
+# sudo nft add rule inet filter forward iif enp0s8 icmp type echo-request counter accept
+# sudo nft add rule inet filter forward oif enp0s8 icmp type echo-reply counter accept
 
-# Allow TCP packets with destination port 22 (SSH) from lab2 to initiate new or established connections, and TCP packets
-# with source port 22 from lab2 to continue established connections.
-sudo nft add rule inet filter forward iif enp0s8 tcp dport 22 ct state new,established counter accept
-sudo nft add rule inet filter forward oif enp0s8 tcp sport 22 ct state established counter accept
+# # Allow TCP packets with destination port 22 (SSH) from lab2 to initiate new or established connections, and TCP packets
+# # with source port 22 from lab2 to continue established connections.
+# sudo nft add rule inet filter forward iif enp0s8 tcp dport 22 ct state new,established counter accept
+# sudo nft add rule inet filter forward oif enp0s8 tcp sport 22 ct state established counter accept
 
-# Allow TCP packets with destination port 80 (HTTP) from lab2 to initiate
-# new or established connections, and TCP packets with source port 80 from lab2 to
-# continue established connections.
-sudo nft add rule inet filter forward iif enp0s8 tcp dport 80 ct state new,established counter accept
-sudo nft add rule inet filter forward oif enp0s8 tcp sport 80 ct state established counter accept
+# # Allow TCP packets with destination port 80 (HTTP) from lab2 to initiate
+# # new or established connections, and TCP packets with source port 80 from lab2 to
+# # continue established connections.
+# sudo nft add rule inet filter forward iif enp0s8 tcp dport 80 ct state new,established counter accept
+# sudo nft add rule inet filter forward oif enp0s8 tcp sport 80 ct state established counter accept
 
-# Allow TCP packets with destination port 20 (FTP data) or 21 (FTP control) from lab2 to initiate new or established connections,
-# and TCP packets with source port 20 or 21 from lab2 to continue established connections.
-sudo nft add rule inet filter forward iif enp0s8 tcp dport {20-21} accept
-sudo nft add rule inet filter forward oif enp0s8 tcp sport {20-21} accept
-sudo nft add rule inet filter forward iif enp0s9 tcp dport {20-21} accept
-sudo nft add rule inet filter forward oif enp0s9 tcp sport {20-21} accept
-sudo nft add rule inet filter forward iif enp0s8 tcp dport {49152-65535} accept
-sudo nft add rule inet filter forward oif enp0s8 tcp sport {49152-65535} accept
-sudo nft add rule inet filter forward iif enp0s9 tcp dport {49152-65535} accept
-sudo nft add rule inet filter forward oif enp0s9 tcp sport {49152-65535} accept
+# # Allow TCP packets with destination port 20 (FTP data) or 21 (FTP control) from lab2 to initiate new or established connections,
+# # and TCP packets with source port 20 or 21 from lab2 to continue established connections. Also allow Passive FTP connections
+# sudo nft add rule inet filter forward iif enp0s8 tcp dport {20-21} accept
+# sudo nft add rule inet filter forward oif enp0s8 tcp sport {20-21} accept
+# sudo nft add rule inet filter forward iif enp0s9 tcp dport {20-21} accept
+# sudo nft add rule inet filter forward oif enp0s9 tcp sport {20-21} accept
+# sudo nft add rule inet filter forward iif enp0s8 tcp dport {49152-65535} accept
+# sudo nft add rule inet filter forward oif enp0s8 tcp sport {49152-65535} accept
+# sudo nft add rule inet filter forward iif enp0s9 tcp dport {49152-65535} accept
+# sudo nft add rule inet filter forward oif enp0s9 tcp sport {49152-65535} accept
 
 sudo nft add table ip filter
 sudo nft add chain ip filter prerouting { type nat hook prerouting priority 0 \; policy accept \; }
 
-# sudo nft add rule ip filter prerouting tcp dport 80 redirect to :3128
-sudo nft add rule ip filter prerouting iifname enp0s8 ip saddr lab2 tcp dport 80 redirect to :8080
+# sudo nft add rule ip filter prerouting iifname enp0s8 ip saddr lab2 tcp dport 80 redirect to :8000
 
 sudo tee -a /etc/squid/squid.conf <<EOL
-http_port 3128
-http_port 8080 transparent
-acl localnet src 192.168.0.0/16
-http_access allow localnet
+http_port 8000 transparent
 http_reply_access allow all
 EOL
 sudo sed -i 's/http_access deny all/http_access allow all/g' /etc/squid/squid.conf
-sudo systemctl restart squid
+# sudo systemctl restart squid
 
-sudo nft add rule ip filter prerouting tcp dport 8080 dnat to 192.168.0.3:80
-sudo nft add chain ip filter postrouting { type nat hook postrouting priority 0 \; policy accept \; }
-sudo nft add rule ip filter postrouting oif enp0s3 masquerade
+# sudo tee -a /etc/squid/squid.conf <<EOL
+# acl lab3 dstdomain lab3
+# never_direct allow lab3
+# EOL
+# sudo systemctl restart squid
