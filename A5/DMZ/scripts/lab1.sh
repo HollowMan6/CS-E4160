@@ -21,6 +21,7 @@ table inet filter {
     chain input {
         type filter hook input priority 0; policy accept;
         iif lo accept
+        tcp sport 80 accept
         tcp dport 22 accept
         tcp dport 8080 accept
         drop
@@ -29,6 +30,7 @@ table inet filter {
     chain output {
         type filter hook output priority 0; policy accept;
         oif lo accept
+        tcp dport 80 accept
         tcp sport 22 accept
         tcp sport 8080 accept
         drop

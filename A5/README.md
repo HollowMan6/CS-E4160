@@ -350,9 +350,14 @@ eth2 is attached to Internal network (lab3)
 6. On lab2 install Apache web server.
 
 ### 5.1 Demonstrate you can browse the Apache webserver from your host and lab3. Demonstrate you cannot ping from lab2 to lab3
+```bash
+vagrant ssh-config > vagrant-ssh
+sudo ssh -F vagrant-ssh -NL 8080:localhost:8080 lab1
+```
 
 ```bash
 vagrant@lab3:~$ curl lab1:8080
+vagrant@lab3:~$ curl lab2
 ```
 ### 5.2 List the commands you used to set up the DMZ in nftables. You must show the prerouting, postrouting , forward, input and output chains.
 
@@ -377,6 +382,7 @@ table inet filter {
     chain input {
         type filter hook input priority 0; policy accept;
         iif lo accept
+        tcp sport 80 accept
         tcp dport 22 accept
         tcp dport 8080 accept
         drop
@@ -385,6 +391,7 @@ table inet filter {
     chain output {
         type filter hook output priority 0; policy accept;
         oif lo accept
+        tcp dport 80 accept
         tcp sport 22 accept
         tcp sport 8080 accept
         drop

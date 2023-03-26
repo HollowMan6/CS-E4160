@@ -17,7 +17,6 @@ Vagrant.configure("2") do |config|
     subconfig.vm.box = "ubuntu/jammy64"    
     subconfig.vm.hostname = "lab1"
     # Set up networks
-    subconfig.vm.network "forwarded_port", guest: 8080, host: 8080
     subconfig.vm.network "private_network",
       ip: "192.168.0.2",
       netmask:"255.255.255.0",
@@ -40,7 +39,7 @@ Vagrant.configure("2") do |config|
       sysctl -w net.ipv4.conf.enp0s8.proxy_arp=1
       sysctl -w net.ipv4.conf.enp0s9.proxy_arp=1
       sudo apt update
-      sudo apt install -y net-tools inetutils-traceroute nmap
+      sudo apt install -y net-tools inetutils-traceroute nmap nginx; sudo sed -i 's#http {#http { server { listen 8080; server_name lab1; location / { rewrite (/|$)(.*) /$2  break; proxy_pass http://lab2:80; }}#g' /etc/nginx/nginx.conf; sudo rm /etc/nginx/sites-enabled/default; sudo systemctl restart nginx
     SHELL
     subconfig.vm.provision :shell, privileged: false, path: "scripts/lab1.sh"
   end
