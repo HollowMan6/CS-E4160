@@ -27,8 +27,12 @@ table inet filter {
     }
 
     chain output {
-		type filter hook output priority 0;
-	}
+        type filter hook output priority 0; policy accept;
+        oif lo accept
+        tcp sport 22 accept
+        tcp sport 8080 accept
+        drop
+    }
 
     chain forward {
         type filter hook forward priority 0; policy accept;
@@ -38,4 +42,5 @@ table inet filter {
     }
 }
 EOL
-sudo systemctl reload nftables
+sudo systemctl restart nftables
+# sudo systemctl reload nftables
