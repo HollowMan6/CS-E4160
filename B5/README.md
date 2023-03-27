@@ -64,7 +64,12 @@ For a client to establish a connection with the OpenVPN server, they need to hav
 - HMac signature key.
 
 ### 2.2 Is there a simpler way of authentication available in OpenVPN? What are its benefits/drawbacks?
-Yes, there is a simpler way of authentication available in OpenVPN called "static key authentication". In this method, a pre-shared secret key is used instead of a PKI. Another simpler way is to securely obtain a username and password from a connecting client, and to use that information as a basis for authenticating the client. It is also possible to disable the use of client certificates, and force username/password authentication only. It uses client-cert-not-required may remove the cert and key directives from the client configuration file, but not the ca directive, because it is necessary for the client to verify the server certificate. The benefit of this method is that it is simple to set up and does not require the overhead of a PKI. However, the drawback is that it is less secure than using a PKI, as there is only one shared secret key for all clients and the server. This means that if the key is compromised, all clients are compromised.
+Yes 
+- there is a simpler way of authentication available in OpenVPN called "static key authentication". In this method, a pre-shared secret key is used instead of a PKI.
+- Another simpler way is to securely obtain a username and password from a connecting client, and to use that information as a basis for authenticating the client. It is also possible to disable the use of client certificates, and force username/password authentication only. 
+- Use client-cert-not-required may also remove the cert and key directives from the client configuration file, but not the ca directive, because it is necessary for the client to verify the server certificate.
+
+The benefit of this method is that it is simple to set up and does not require the overhead of a PKI. However, the drawback is that it is less secure than using a PKI, as there is only one shared secret key for all clients and the server. This means that if the key is compromised, all clients are compromised.
 
 ## 3. Configuring the VPN server
 On GW copy /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz to for example /etc/openvpn and extract it. You have to edit the server.conf to use bridged mode with the correct virtual interface. You also have to check that the keys and certificates point to the correct files. Set the server to listen for connection in GW's enp0s9 IP address.
@@ -92,7 +97,7 @@ OpenVPN provides a script for this in /usr/share/doc/openvpn/examples/sample-scr
 Same as enp0s8, which is 192.168.0.2
 
 ### 4.2 What is the difference between routing and bridging in VPN? What are the benefits/disadvantages of the two? When would you use routing and when bridging?
-Routing and bridging are two methods used for forwarding network traffic in a VPN (Virtual Private Network).
+Routing and bridging are two methods used for forwarding network traffic in a VPN.
 
 Routing:
 
@@ -177,7 +182,7 @@ sudo tcpdump -i enp0s9 -s 0 -w - port 5000
 
 ### 5.4 Enable ciphering. Is there a way to capture and read the messages sent in 5.2 on GW despite the encryption? Where is the message encrypted and where is it not?
 
-Yes, as enabling ciphering in the OpenVPN configuration will only encrypt the messages being sent between the client and the server using SSL/TLS encryption. The encryption only happens on the client-side after sending the messages and on the server-side before receiving the messages. Therefore, if we capture the packets using a packet capture tool like tcpdump or Wireshark at br0, enp0s8, we are able to read the messages in plain text because they are still encrypted.
+Yes, as enabling ciphering in the OpenVPN configuration will only encrypt the messages being sent between the client and the server using SSL/TLS encryption. The encryption only happens on the client-side after sending the messages and on the server-side before receiving the messages. Therefore, if we capture the packets using a packet capture tool like tcpdump or Wireshark at br0, enp0s8, we are able to read the messages in plain text.
 
 Also, as we store certificates on GW (lab1), we have the correct encryption keys or certificates, so we can also decrypt the captured packets and read the messages in plain text. This can be done using Wireshark's SSL/TLS decryption feature. By providing the decryption keys or certificates, Wireshark can decrypt the captured packets and display the contents in plain text.
 
@@ -187,6 +192,7 @@ Also, as we store certificates on GW (lab1), we have the correct encryption keys
 vagrant@lab3:~$ traceroute lab2
 traceroute to lab2 (192.168.0.3), 64 hops max
   1   192.168.0.3  2.035ms  1.307ms  0.856ms
+vagrant@lab2:~$ traceroute lab3
 traceroute to lab3 (192.168.2.3), 64 hops max
   1   10.0.2.2  0.448ms  0.346ms  0.328ms 
   2   *  *  * 

@@ -55,14 +55,10 @@ sudo nft add table inet filter
 
 # # Allow TCP packets with destination port 20 (FTP data) or 21 (FTP control) from lab2 to initiate new or established connections,
 # # and TCP packets with source port 20 or 21 from lab2 to continue established connections. Also allow Passive FTP connections
-# sudo nft add rule inet filter forward iif enp0s8 tcp dport {20-21} accept
-# sudo nft add rule inet filter forward oif enp0s8 tcp sport {20-21} accept
-# sudo nft add rule inet filter forward iif enp0s9 tcp dport {20-21} accept
-# sudo nft add rule inet filter forward oif enp0s9 tcp sport {20-21} accept
-# sudo nft add rule inet filter forward iif enp0s8 tcp dport {49152-65535} accept
-# sudo nft add rule inet filter forward oif enp0s8 tcp sport {49152-65535} accept
-# sudo nft add rule inet filter forward iif enp0s9 tcp dport {49152-65535} accept
-# sudo nft add rule inet filter forward oif enp0s9 tcp sport {49152-65535} accept
+# sudo nft add rule inet filter forward iif enp0s8 tcp dport {20-21} counter accept
+# sudo nft add rule inet filter forward oif enp0s8 tcp sport {20-21} counter accept
+# sudo nft add rule inet filter forward iif enp0s9 tcp dport {49152-65535} counter accept
+# sudo nft add rule inet filter forward oif enp0s9 tcp sport {49152-65535} counter accept
 
 sudo nft add table ip filter
 sudo nft add chain ip filter prerouting { type nat hook prerouting priority 0 \; policy accept \; }
