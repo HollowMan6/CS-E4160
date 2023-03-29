@@ -109,18 +109,68 @@ minikube tunnel
 This differs from connecting to one of the pods directly because the load balancer distributes traffic across multiple pods, while connecting to a single pod only serves traffic to that specific pod.
 
 ## 3.3 Explain the contents of sa-frontend-deployment.yaml, including what changes you made
-The sa-frontend-deployment.yaml file specifies a Kubernetes deployment for the frontend service. It creates a replica set of frontend pods and manages their lifecycle, ensuring that the desired number of replicas are always running.
+The sa-frontend-deployment.yaml file specifies a Kubernetes deployment for the frontend service. It creates a set of frontend pods and manages their lifecycle, ensuring that the desired number of replicas are always running.
 
-- kind: Specifies the kind of object to be created. Here, it is a deployment object.
-- replicas: Specifies the number of replicas that should be created for this deployment. In this case, it is set to 2.
-- strategy: Specifies the deployment strategy used when updating the deployment. The type field is set to "RollingUpdate" to ensure that there is a smooth transition between different versions of the deployment.
-- maxUnavailable: Specifies the maximum number of pods that can be unavailable during a rolling update. In this case, it is set to 1, which means that only one pod is taken down at a time during the update.
-- maxSurge: Specifies the maximum number of pods that can be created above the desired number of pods during a rolling update. In this case, it is set to 1, which means that only one new pod can be created at a time during the update.
-- labels: Labels are used to identify objects in Kubernetes. Here, it specifies the labels that should be attached to the pods created by this deployment. This is used by the selector field to identify which pods should be controlled by this deployment.
-- image: Specifies the Docker image to be used for this deployment's container. In this case, it is hollowman6/sa-frontend:minikube.
-- imagePullPolicy: Specifies when the Kubernetes should attempt to pull the image. Here, it is set to "Always" to ensure that the latest version of the image is used.
-- name: Specifies the name of the container that will be created.
-- ports: Specifies the port that the container will listen on. Here, it is set to 80, which is the default port for web traffic.
+1. apiVersion: apps/v1: Specifies the API version of Kubernetes resources that the configuration applies to. In this case, it's apps/v1, which is the stable API version for Deployments.
+
+2. kind: Deployment: Defines the type of Kubernetes resource being created, which is a Deployment in this case.
+
+3. metadata:: Contains metadata about the Deployment, such as its name and labels.
+  * name: sa-frontend: The name of the Deployment, which is sa-frontend.
+
+4. spec:: Specifies the desired state of the Deployment.
+  * replicas: 2: The desired number of replica pods to be maintained by the Deployment. Here, 2 replicas are specified.
+
+  * minReadySeconds: 15: The minimum number of seconds a pod should be ready without any of its containers crashing to be considered available. In this case, it's 15 seconds.
+
+  * selector:: Determines which pods are managed by the Deployment based on their labels.
+    * matchLabels:: A set of key-value pairs that must match the labels of the pods.
+    * app: sa-frontend: The key-value pair specifying that the pods with the label app=sa-frontend are managed by this Deployment.
+  
+  * strategy:: The update strategy for the Deployment when new changes are applied.
+    * type: RollingUpdate: Specifies that a rolling update strategy should be used to update the pods.
+    * rollingUpdate:: The parameters for the rolling update strategy.
+      * maxUnavailable: 1: The maximum number of pods that can be unavailable during the update process. In this case, it's 1 pod.
+      * maxSurge: 1: The maximum number of extra pods that can be created during the update process. In this case, it's 1 pod.
+  * template:: The template for creating new pods, which is instantiated when scaling or updating the Deployment.
+    * metadata:: Contains metadata about the pod template.
+    * labels:: The labels to be applied to the pods created from this template.
+      * app: sa-frontend: The key-value pair specifying the label app=sa-frontend.
+  * spec:: Specifies the desired state of the pod, including the containers running in it.
+    * containers:: A list of containers to be run within the pod.
+      * image: jinjia/sa-frontend:v1: The container image to be used, which is jinjia/sa-frontend:v1.
+      * imagePullPolicy: Always: Specifies when to pull the container image. In this case, it's set to Always, which means the image will be pulled every time the pod starts.
+      * name: sa-frontend: The name of the container.
+      * ports:: A list of ports to expose from the container.
+      * containerPort: 80: The port number to be exposed from the container, which is port 80.
 
 ## 3.4 How can you scale a deployment after it has been deployed?
+```bash
 kubectl scale deploy sa-frontend --replicas=3
+```
+
+Autoscaling:
+```yaml
+apiVersion: autoscaling/v1
+ kind: HorizontalPodAutoscaler
+ metadata:
+   name: api
+ spec:
+   scaleTargetRef:
+     apiVersion: apps/v1
+     kind: Deployment
+     name: api
+   minReplicas: 1
+   maxReplicas: 5
+   targetCPUUtilizationPercentage: 20
+```
+
+Scaling a deployment after it has been deployed involves increasing or decreasing the resources allocated to the deployment to meet changing demand or performance requirements. Here are a few ways to scale a deployment:
+
+- Horizontal scaling: Horizontal scaling involves adding more instances of the same type to the deployment to handle increased demand. For example, if a web application is receiving more traffic than usual, adding more servers to handle the traffic can help distribute the load.
+- Vertical scaling: Vertical scaling involves increasing the resources allocated to a single instance of the deployment. For example, upgrading the CPU, memory, or disk capacity of a server can help improve performance.
+- Auto-scaling: Auto-scaling is a technique that allows a deployment to automatically adjust its resources based on demand. For example, an auto-scaling group in Amazon Web Services (AWS) can automatically add or remove instances based on the CPU utilization or network traffic.
+- Container orchestration platforms like Kubernetes can automatically scale deployments based on metrics like CPU and memory usage, as well as custom metrics.
+- Load balancing involves distributing incoming network traffic across multiple instances of a deployment. This can help improve availability and performance, and it can also enable horizontal scaling by automatically adding or removing instances based on traffic patterns.
+
+It's important to note that scaling a deployment can have costs associated with it, both in terms of infrastructure and operational complexity. Therefore, it's important to carefully consider the trade-offs between scaling and cost when making decisions about deployment architecture.
